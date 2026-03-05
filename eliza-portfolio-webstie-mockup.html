@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eliza — Film & Commercial Production</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Geist+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --fg: #e8e4dc;
+    --muted: #5a5650;
+    --accent: #c8a96e;
+    --border: rgba(232, 228, 220, 0.08);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Geist Mono', monospace;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease;
+  }
+  .cursor-ring {
+    width: 32px; height: 32px;
+    border: 1px solid rgba(200, 169, 110, 0.4);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: all 0.15s ease;
+  }
+
+  /* Nav */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 28px 48px;
+    mix-blend-mode: normal;
+  }
+  .nav-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    color: var(--fg);
+    text-decoration: none;
+    opacity: 0;
+    animation: fadeIn 1s ease 0.5s forwards;
+  }
+  .nav-links {
+    display: flex; gap: 36px;
+    opacity: 0;
+    animation: fadeIn 1s ease 0.7s forwards;
+  }
+  .nav-links a {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  .nav-links a:hover { color: var(--fg); }
+
+  /* Hero */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: flex-end;
+    padding: 0 48px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 40%, rgba(200,169,110,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 80%, rgba(200,169,110,0.03) 0%, transparent 50%);
+  }
+
+  /* Film grain overlay */
+  .grain {
+    position: fixed; inset: -200%;
+    width: 400%; height: 400%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.35;
+    animation: grain 0.5s steps(2) infinite;
+  }
+  @keyframes grain {
+    0%, 100% { transform: translate(0,0); }
+    10% { transform: translate(-2%,-3%); }
+    30% { transform: translate(3%,2%); }
+    50% { transform: translate(-1%,4%); }
+    70% { transform: translate(4%,-1%); }
+    90% { transform: translate(-3%,1%); }
+  }
+
+  .hero-content { position: relative; z-index: 2; }
+
+  .hero-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: slideUp 1s ease 0.2s forwards;
+  }
+
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(72px, 12vw, 160px);
+    font-weight: 300;
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    opacity: 0;
+    animation: slideUp 1s ease 0.4s forwards;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    margin-top: 32px;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    max-width: 320px;
+    line-height: 1.8;
+    opacity: 0;
+    animation: slideUp 1s ease 0.6s forwards;
+  }
+
+  .hero-scroll {
+    position: absolute;
+    right: 48px; bottom: 80px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    opacity: 0;
+    animation: fadeIn 1s ease 1.2s forwards;
+  }
+  .hero-scroll span {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    writing-mode: vertical-rl;
+  }
+  .scroll-line {
+    width: 1px; height: 60px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    animation: scrollLine 2s ease-in-out infinite;
+  }
+  @keyframes scrollLine {
+    0%, 100% { transform: scaleY(1); opacity: 1; }
+    50% { transform: scaleY(0.5); opacity: 0.4; }
+  }
+
+  /* Section styles */
+  section {
+    padding: 120px 48px;
+    position: relative;
+  }
+
+  .section-label {
+    font-size: 9px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 64px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1; max-width: 60px;
+    height: 1px;
+    background: var(--accent);
+    opacity: 0.4;
+  }
+
+  /* Work grid */
+  .work-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 2px;
+  }
+
+  .work-item {
+    position: relative;
+    overflow: hidden;
+    background: #111;
+    cursor: none;
+  }
+
+  .work-item:nth-child(1) { grid-column: span 7; aspect-ratio: 16/9; }
+  .work-item:nth-child(2) { grid-column: span 5; aspect-ratio: 16/9; }
+  .work-item:nth-child(3) { grid-column: span 4; aspect-ratio: 9/12; }
+  .work-item:nth-child(4) { grid-column: span 8; aspect-ratio: 16/9; }
+  .work-item:nth-child(5) { grid-column: span 12; aspect-ratio: 21/9; }
+
+  .work-thumb {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.6s ease;
+    filter: grayscale(30%) brightness(0.7);
+  }
+
+  /* Placeholder video thumbnails using CSS */
+  .work-placeholder {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, #111 0%, #1a1a1a 50%, #111 100%);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .work-placeholder::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 30%, rgba(200,169,110,0.03) 100%);
+  }
+
+  .play-icon {
+    width: 40px; height: 40px;
+    border: 1px solid rgba(200,169,110,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s ease;
+    position: relative; z-index: 1;
+  }
+  .play-icon::after {
+    content: '';
+    width: 0; height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-left: 14px solid rgba(200,169,110,0.5);
+    margin-left: 3px;
+    transition: border-color 0.3s;
+  }
+
+  .work-item:hover .work-placeholder { transform: scale(1.03); }
+  .work-item:hover .play-icon {
+    border-color: var(--accent);
+    background: rgba(200,169,110,0.1);
+  }
+  .work-item:hover .play-icon::after { border-left-color: var(--accent); }
+
+  .work-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 24px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .work-item:hover .work-overlay { opacity: 1; }
+
+  .work-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    transform: translateY(8px);
+    transition: transform 0.4s ease;
+  }
+  .work-item:hover .work-title { transform: translateY(0); }
+
+  .work-meta {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-top: 6px;
+    transform: translateY(8px);
+    transition: transform 0.4s ease 0.05s;
+  }
+  .work-item:hover .work-meta { transform: translateY(0); }
+
+  /* About */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 120px;
+    align-items: start;
+  }
+
+  .about-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(40px, 5vw, 68px);
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+
+  .about-heading em { font-style: italic; color: var(--accent); }
+
+  .about-text {
+    font-size: 12px;
+    line-height: 2.2;
+    color: #9a9590;
+    margin-top: 48px;
+  }
+
+  .about-text p + p { margin-top: 20px; }
+
+  .credits-list {
+    margin-top: 48px;
+    border-top: 1px solid var(--border);
+  }
+
+  .credit-item {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    transition: color 0.3s;
+  }
+
+  .credit-item:hover { color: var(--fg); }
+
+  .credit-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 300;
+    color: var(--fg);
+  }
+
+  .credit-role {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  /* Contact */
+  .contact-section {
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: flex-end;
+    flex-wrap: wrap; gap: 48px;
+  }
+
+  .contact-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(48px, 7vw, 96px);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 0.9;
+  }
+
+  .contact-heading em { font-style: italic; color: var(--accent); }
+
+  .contact-info { text-align: right; }
+
+  .contact-link {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.3s;
+    margin-bottom: 8px;
+  }
+  .contact-link:hover { color: var(--fg); }
+
+  /* Footer */
+  footer {
+    padding: 24px 48px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid var(--border);
+  }
+
+  footer span {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Horizontal rule deco */
+  .deco-line {
+    position: absolute;
+    top: 0; left: 48px; right: 48px;
+    height: 1px;
+    background: var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav>
+  <a href="#" class="nav-name">Eliza P.</a>
+  <div class="nav-links">
+    <a href="#work">Work</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Film &amp; Commercial Production</p>
+    <h1 class="hero-title">
+      Eliza<br><em>Padden</em>
+    </h1>
+    <p class="hero-sub">
+      Production coordinator &amp; behind-the-scenes force on commercials, films, and branded content.
+    </p>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- Work -->
+<section id="work">
+  <div class="deco-line"></div>
+  <div class="section-label reveal">Selected Work</div>
+
+  <div class="work-grid">
+    <div class="work-item reveal">
+      <div class="work-placeholder"><div class="play-icon"></div></div>
+      <div class="work-overlay">
+        <div class="work-title">Nike — "Just Do It"</div>
+        <div class="work-meta">Commercial · 2024</div>
+      </div>
+    </div>
+    <div class="work-item reveal">
+      <div class="work-placeholder"><div class="play-icon"></div></div>
+      <div class="work-overlay">
+        <div class="work-title">Untitled Feature</div>
+        <div class="work-meta">Film · 2023</div>
+      </div>
+    </div>
+    <div class="work-item reveal">
+      <div class="work-placeholder"><div class="play-icon"></div></div>
+      <div class="work-overlay">
+        <div class="work-title">Apple — Shot on iPhone</div>
+        <div class="work-meta">Commercial · 2023</div>
+      </div>
+    </div>
+    <div class="work-item reveal">
+      <div class="work-placeholder"><div class="play-icon"></div></div>
+      <div class="work-overlay">
+        <div class="work-title">Short Film</div>
+        <div class="work-meta">Narrative · 2022</div>
+      </div>
+    </div>
+    <div class="work-item reveal">
+      <div class="work-placeholder"><div class="play-icon"></div></div>
+      <div class="work-overlay">
+        <div class="work-title">Brand Campaign Reel</div>
+        <div class="work-meta">Multi-brand · 2024</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About -->
+<section id="about">
+  <div class="deco-line"></div>
+  <div class="about-grid">
+    <div>
+      <div class="section-label reveal">About</div>
+      <h2 class="about-heading reveal">The work<br>runs <em>through</em><br>her.</h2>
+    </div>
+    <div>
+      <div class="about-text reveal">
+        <p>Eliza has spent her career making sure productions run — on time, on budget, and exactly as envisioned. From commercials to feature films, she operates as the connective tissue between creative vision and on-set reality.</p>
+        <p>Based in [City]. Available for projects worldwide.</p>
+      </div>
+
+      <div class="credits-list reveal">
+        <div class="credit-item">
+          <div>
+            <div class="credit-title">Project Name</div>
+            <div class="credit-role">Production Coordinator</div>
+          </div>
+          <span>2024</span>
+        </div>
+        <div class="credit-item">
+          <div>
+            <div class="credit-title">Project Name</div>
+            <div class="credit-role">Production Coordinator</div>
+          </div>
+          <span>2023</span>
+        </div>
+        <div class="credit-item">
+          <div>
+            <div class="credit-title">Project Name</div>
+            <div class="credit-role">Production Coordinator</div>
+          </div>
+          <span>2022</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact" class="contact-section">
+  <div class="deco-line"></div>
+  <h2 class="contact-heading reveal">Let's<br><em>talk.</em></h2>
+  <div class="contact-info reveal">
+    <a href="mailto:eliza@email.com" class="contact-link">eliza@email.com</a>
+    <a href="#" class="contact-link">IMDb</a>
+    <a href="#" class="contact-link">LinkedIn</a>
+  </div>
+</section>
+
+<footer>
+  <span>© 2026 Eliza Padden</span>
+  <span>Film &amp; Commercial Production</span>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+
+  function animRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

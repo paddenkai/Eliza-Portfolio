@@ -7,594 +7,644 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@200;300;400&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
   --bg: #0c0c0c;
   --fg: #eeebe5;
   --muted: rgba(238,235,229,0.42);
   --border: rgba(238,235,229,0.1);
 }
-
 html, body {
   width: 100%; height: 100%;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 300;
-  overflow: hidden;
+  background: var(--bg); color: var(--fg);
+  font-family: 'DM Sans', sans-serif; font-weight: 300;
+  overflow: hidden; user-select: none;
 }
 
-/* ═══════════════════════
-   NAV
-═══════════════════════ */
+/* NAV */
 nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 200;
   display: flex; justify-content: space-between; align-items: center;
   padding: 0 40px; height: 64px;
-  background: linear-gradient(to bottom, rgba(12,12,12,0.9) 0%, transparent 100%);
+  background: linear-gradient(to bottom, rgba(12,12,12,0.92) 0%, transparent 100%);
   pointer-events: none;
 }
-
 nav > * { pointer-events: auto; }
-
 .nav-logo {
   font-family: 'Playfair Display', serif;
   font-size: 19px; font-weight: 300; letter-spacing: 0.06em;
   color: var(--fg); text-decoration: none; cursor: pointer;
 }
-.nav-logo:hover { opacity: 0.7; }
-
+.nav-logo:hover { opacity: 0.6; }
 .nav-links { display: flex; }
-.nav-links a {
+.nav-links button {
   font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--muted); text-decoration: none; cursor: pointer;
-  padding: 8px 14px; transition: color 0.25s; position: relative;
-  border: none; background: none; font-family: 'DM Sans', sans-serif;
+  color: var(--muted); background: none; border: none; cursor: pointer;
+  padding: 8px 14px; font-family: 'DM Sans', sans-serif; font-weight: 300;
+  transition: color 0.25s; position: relative;
 }
-.nav-links a:hover { color: var(--fg); }
-.nav-links a.active { color: var(--fg); }
-.nav-links a.active::after {
+.nav-links button:hover, .nav-links button.active { color: var(--fg); }
+.nav-links button.active::after {
   content: ''; position: absolute; bottom: 2px; left: 14px; right: 14px;
   height: 1px; background: var(--fg);
 }
-
-.nav-right {
+.nav-contact {
   font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
   color: var(--muted); text-decoration: none; transition: color 0.25s;
 }
-.nav-right:hover { color: var(--fg); }
+.nav-contact:hover { color: var(--fg); }
 
-/* ═══════════════════════
-   HORIZONTAL TRACK
-═══════════════════════ */
-.h-track {
-  display: flex;
-  width: max-content;
-  height: 100vh;
-  transition: transform 0.75s cubic-bezier(0.77, 0, 0.18, 1);
+/* SIDE ARROWS */
+.side-arrow {
+  position: fixed; top: 50%; transform: translateY(-50%); z-index: 150;
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid var(--border); background: rgba(12,12,12,0.55);
+  backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: border-color 0.25s, background 0.25s, opacity 0.3s;
+}
+.side-arrow:hover { border-color: rgba(238,235,229,0.4); background: rgba(238,235,229,0.08); }
+.side-arrow svg { width: 16px; height: 16px; fill: none; stroke: var(--fg); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.side-arrow.hide { opacity: 0; pointer-events: none; }
+#arr-left  { left: 20px; }
+#arr-right { right: 20px; }
+
+/* DOTS */
+#dots {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 7px; z-index: 150;
+}
+.dot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: rgba(238,235,229,0.2); cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+}
+.dot.on { background: var(--fg); transform: scale(1.4); }
+
+/* TRACK */
+#track {
+  display: flex; height: 100vh; width: max-content;
+  transition: transform 0.72s cubic-bezier(0.77,0,0.18,1);
   will-change: transform;
 }
 
-/* ═══════════════════════
-   PANELS
-═══════════════════════ */
+/* PANEL */
 .panel {
-  position: relative;
-  width: 100vw; height: 100vh;
-  overflow: hidden;
-  flex-shrink: 0;
+  position: relative; width: 100vw; height: 100vh;
+  overflow: hidden; flex-shrink: 0; background: #080808;
+}
+.panel::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    linear-gradient(to top,  rgba(12,12,12,0.92) 0%, rgba(12,12,12,0.02) 42%, transparent 60%),
+    linear-gradient(to bottom, rgba(12,12,12,0.55) 0%, transparent 18%);
 }
 
-/* video layer */
-.panel-video {
-  position: absolute; inset: 0;
-  background: #050505;
+/* FULLSCREEN VIDEO inside panel */
+.vid {
+  position: absolute; inset: 0; overflow: hidden;
 }
-
-.panel-video iframe {
+.vid iframe {
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   width: 100vw; height: 56.25vw;
   min-height: 100vh; min-width: 177.78vh;
   border: none; pointer-events: none;
-  transition: opacity 0.6s ease;
 }
 
-/* scrim */
-.panel::after {
-  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background:
-    linear-gradient(to top,  rgba(12,12,12,0.92) 0%, rgba(12,12,12,0.05) 40%, transparent 60%),
-    linear-gradient(to right, rgba(12,12,12,0.4)  0%, transparent 30%),
-    linear-gradient(to bottom, rgba(12,12,12,0.5) 0%, transparent 15%);
-}
-
-/* info bar */
-.panel-info {
+/* PANEL INFO */
+.info {
   position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
   padding: 36px 40px;
   display: flex; justify-content: space-between; align-items: flex-end;
 }
-
-.panel-category {
+.info-cat {
   font-size: 9px; letter-spacing: 0.34em; text-transform: uppercase;
   color: var(--muted); margin-bottom: 10px;
 }
-
-.panel-title {
+.info-title {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(22px, 3.2vw, 46px); font-weight: 300; line-height: 1.15;
+  font-size: clamp(22px, 3.2vw, 48px); font-weight: 300; line-height: 1.15;
 }
-.panel-title em { font-style: italic; }
-
-.panel-meta {
+.info-title em { font-style: italic; }
+.info-meta {
   margin-top: 8px; font-size: 10px;
   letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
 }
-
-/* counter */
-.panel-counter {
-  font-size: 10px; letter-spacing: 0.14em;
-  color: var(--muted); font-variant-numeric: tabular-nums;
-  flex-shrink: 0; margin-left: 20px;
-  align-self: flex-end; padding-bottom: 4px;
+/* section label top-left on first of section */
+.sec-label {
+  position: absolute; top: 80px; left: 40px; z-index: 10;
+  font-family: 'Playfair Display', serif; font-style: italic;
+  font-size: clamp(13px, 1.4vw, 18px); font-weight: 300;
+  letter-spacing: 0.06em; color: rgba(238,235,229,0.3);
+  pointer-events: none;
 }
 
-/* ═══════════════════════
-   HERO PANEL
-═══════════════════════ */
-#panel-hero .panel-info {
-  align-items: flex-end;
+/* HERO PANEL */
+#hero-panel { background: #050505; }
+/* bg reel frames */
+.hbg {
+  position: absolute; inset: 0; opacity: 0;
+  transition: opacity 1.4s ease;
 }
-
+.hbg.on { opacity: 1; }
+.hbg iframe {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw; height: 56.25vw;
+  min-height: 100vh; min-width: 177.78vh;
+  border: none; pointer-events: none;
+}
 .hero-name {
   font-family: 'Playfair Display', serif;
   font-size: clamp(96px, 17vw, 210px); font-weight: 300;
   letter-spacing: -0.03em; line-height: 1;
-  animation: nameFade 1.6s cubic-bezier(0.16,1,0.3,1) 0.1s both;
-  text-shadow: 0 2px 60px rgba(0,0,0,0.4);
+  text-shadow: 0 2px 60px rgba(0,0,0,0.5);
+  animation: nameIn 1.6s cubic-bezier(0.16,1,0.3,1) 0.1s both;
 }
-@keyframes nameFade {
-  from { opacity: 0; transform: translateY(18px); letter-spacing: 0.08em; }
-  to   { opacity: 1; transform: translateY(0); letter-spacing: -0.03em; }
+@keyframes nameIn {
+  from { opacity:0; transform:translateY(18px); letter-spacing:0.08em; }
+  to   { opacity:1; transform:translateY(0);    letter-spacing:-0.03em; }
 }
-
 .hero-sub {
-  margin-top: 12px; font-size: 10px;
-  letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted);
+  margin-top: 12px; font-size: 10px; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--muted);
   animation: fadeUp 1s ease 1s both;
 }
-
 .hero-hint {
-  display: flex; align-items: center; gap: 10px;
-  font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase;
-  color: var(--muted); animation: fadeUp 1s ease 1.3s both; flex-shrink: 0;
-  padding-bottom: 6px;
+  display: flex; align-items: center; gap: 10px; padding-bottom: 6px;
+  font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--muted);
+  animation: fadeUp 1s ease 1.3s both; flex-shrink: 0;
 }
-.hint-bar {
+.hint-line {
   width: 36px; height: 1px;
   background: linear-gradient(to right, transparent, var(--muted));
-  animation: hintPulse 2s ease-in-out infinite;
 }
-@keyframes hintPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
 }
 
-/* ═══════════════════════
-   FOOTER PANEL
-═══════════════════════ */
-#panel-footer {
-  width: 60vw;
-  min-width: 500px;
-  background: var(--bg);
-  border-left: 1px solid var(--border);
-  display: flex; flex-direction: column;
-  justify-content: center;
+/* PLACEHOLDER panels (stills/features) */
+.placeholder-panel {
+  display: flex; align-items: center; justify-content: center;
+  background: #0e0e0e;
+}
+.placeholder-panel::after { display: none; }
+.placeholder-inner { text-align: center; }
+.placeholder-title {
+  font-family: 'Playfair Display', serif; font-style: italic;
+  font-size: clamp(48px,8vw,100px); font-weight: 300;
+  color: rgba(238,235,229,0.1);
+}
+.placeholder-sub {
+  margin-top: 14px; font-size: 9px; letter-spacing: 0.3em;
+  text-transform: uppercase; color: rgba(238,235,229,0.18);
+}
+
+/* FOOTER PANEL */
+#footer-panel {
+  width: 60vw; min-width: 480px; flex-shrink: 0;
+  background: var(--bg); border-left: 1px solid var(--border);
+  display: flex; flex-direction: column; justify-content: center;
   padding: 80px 64px;
 }
-
-#panel-footer::after { display: none; }
-
+#footer-panel::after { display: none; }
 .footer-name {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(48px, 7vw, 90px); font-weight: 300;
+  font-size: clamp(48px,7vw,90px); font-weight: 300;
   letter-spacing: -0.02em; line-height: 0.95;
 }
 .footer-name em { font-style: italic; }
-
-.footer-location {
-  margin-top: 16px; font-size: 10px;
-  letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted);
+.footer-loc {
+  margin-top: 16px; font-size: 10px; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--muted);
 }
-
-.footer-links {
-  margin-top: 48px; display: flex; flex-direction: column; gap: 12px;
-}
+.footer-links { margin-top: 48px; display: flex; flex-direction: column; gap: 12px; }
 .footer-links a {
   font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--muted); text-decoration: none; transition: color 0.25s;
-  width: fit-content;
+  color: var(--muted); text-decoration: none; transition: color 0.25s; width: fit-content;
 }
 .footer-links a:hover { color: var(--fg); }
-
 .footer-copy {
   margin-top: 60px; font-size: 9px; letter-spacing: 0.16em;
   text-transform: uppercase; color: rgba(238,235,229,0.16);
 }
 
-/* ═══════════════════════
-   NAV ARROWS (sides)
-═══════════════════════ */
-.nav-arrow {
-  position: fixed; top: 50%; z-index: 150;
-  transform: translateY(-50%);
-  width: 48px; height: 48px; border-radius: 50%;
-  border: 1px solid var(--border);
-  background: rgba(12,12,12,0.5); backdrop-filter: blur(8px);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: border-color 0.25s, background 0.25s, opacity 0.3s;
-  color: var(--fg);
-}
-.nav-arrow:hover { border-color: rgba(238,235,229,0.4); background: rgba(238,235,229,0.08); }
-.nav-arrow.hidden { opacity: 0; pointer-events: none; }
-.nav-arrow svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-
-#arrow-left  { left: 20px; }
-#arrow-right { right: 20px; }
-
-/* Progress dots */
-.progress-dots {
-  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
-  display: flex; gap: 7px; z-index: 150;
-}
-.pdot {
-  width: 4px; height: 4px; border-radius: 50%;
-  background: rgba(238,235,229,0.2); cursor: pointer;
-  transition: background 0.3s, transform 0.3s;
-}
-.pdot.active { background: var(--fg); transform: scale(1.4); }
-
-/* Section label in top-left corner of first video of each section */
-.section-start-label {
-  position: absolute; top: 80px; left: 40px; z-index: 10;
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(13px, 1.4vw, 18px); font-weight: 300;
-  letter-spacing: 0.06em; color: rgba(238,235,229,0.35);
-  font-style: italic;
-  pointer-events: none;
-}
-
-/* ═══════════════════════
-   MOBILE
-═══════════════════════ */
+/* MOBILE */
 @media (max-width: 768px) {
   nav { padding: 0 20px; }
   .nav-links { display: none; }
-  .panel-info { padding: 24px 20px; }
-  #arrow-left  { left: 12px; width: 40px; height: 40px; }
-  #arrow-right { right: 12px; width: 40px; height: 40px; }
-  #panel-footer { width: 100vw; min-width: unset; padding: 60px 32px; }
-  .hero-name { font-size: clamp(80px, 22vw, 160px); }
+  .info { padding: 24px 20px; flex-direction: column; align-items: flex-start; gap: 10px; }
+  #arr-left  { left: 10px; width: 40px; height: 40px; }
+  #arr-right { right: 10px; width: 40px; height: 40px; }
+  #footer-panel { width: 100vw; min-width: unset; padding: 60px 28px; }
 }
 </style>
 </head>
 <body>
 
 <!-- NAV -->
-<nav id="mainNav">
-  <a class="nav-logo" onclick="goTo(0)">Eliza</a>
-  <div class="nav-links" id="navLinks">
-    <a onclick="goToSection('commercials')">Commercials</a>
-    <a onclick="goToSection('music')">Music Videos</a>
-    <a onclick="goToSection('stills')">Stills</a>
-    <a onclick="goToSection('features')">Features</a>
+<nav>
+  <span class="nav-logo" onclick="goTo(0)">Eliza</span>
+  <div class="nav-links">
+    <button onclick="goToSection('commercials')">Commercials</button>
+    <button onclick="goToSection('music')">Music Videos</button>
+    <button onclick="goToSection('stills')">Stills</button>
+    <button onclick="goToSection('features')">Features</button>
   </div>
-  <a href="mailto:eliza@email.com" class="nav-right">Contact</a>
+  <a class="nav-contact" href="mailto:eliza@email.com">Contact</a>
 </nav>
 
 <!-- SIDE ARROWS -->
-<button class="nav-arrow hidden" id="arrow-left" onclick="prev()">
+<button class="side-arrow hide" id="arr-left" onclick="prev()">
   <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
 </button>
-<button class="nav-arrow" id="arrow-right" onclick="next()">
+<button class="side-arrow" id="arr-right" onclick="next()">
   <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
 </button>
 
-<!-- PROGRESS DOTS (injected by JS) -->
-<div class="progress-dots" id="progressDots"></div>
+<!-- DOTS -->
+<div id="dots"></div>
 
-<!-- HORIZONTAL TRACK -->
-<div class="h-track" id="hTrack">
+<!-- TRACK -->
+<div id="track">
 
   <!-- 0: HERO -->
-  <div class="panel" id="panel-hero" data-section="hero">
-    <div class="panel-video">
-      <iframe id="iframe-0"
-        src="https://player.vimeo.com/video/1076763984?autoplay=1&muted=1&loop=1&background=1"
-        allow="autoplay"></iframe>
-    </div>
-    <div class="panel-info">
+  <div class="panel" id="hero-panel" data-section="hero">
+    <!-- bg reel: first one live, rest lazy -->
+    <div class="hbg on"  id="hbg0"><iframe src="https://player.vimeo.com/video/1076763984?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
+    <div class="hbg" id="hbg1"><iframe src="about:blank" data-src="https://player.vimeo.com/video/1171005604?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
+    <div class="hbg" id="hbg2"><iframe src="about:blank" data-src="https://player.vimeo.com/video/1093132338?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
+    <div class="hbg" id="hbg3"><iframe src="about:blank" data-src="https://player.vimeo.com/video/1007834851?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
+    <div class="hbg" id="hbg4"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/gXcLuhXj4LU?autoplay=1&mute=1&loop=1&playlist=gXcLuhXj4LU&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="hbg" id="hbg5"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/Cf1hKtrA9lg?autoplay=1&mute=1&loop=1&playlist=Cf1hKtrA9lg&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="hbg" id="hbg6"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/7Lo8WTBuHDg?autoplay=1&mute=1&loop=1&playlist=7Lo8WTBuHDg&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="hbg" id="hbg7"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/yD9Xo0V-hPw?autoplay=1&mute=1&loop=1&playlist=yD9Xo0V-hPw&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="hbg" id="hbg8"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/RaNRhFH4inM?autoplay=1&mute=1&loop=1&playlist=RaNRhFH4inM&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="hbg" id="hbg9"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/oIEKK_j0fss?autoplay=1&mute=1&loop=1&playlist=oIEKK_j0fss&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="hbg" id="hbg10"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/D7liwdjvhWc?autoplay=1&mute=1&loop=1&playlist=D7liwdjvhWc&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="hbg" id="hbg11"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/BjAaJEdiu68?autoplay=1&mute=1&loop=1&playlist=BjAaJEdiu68&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="hbg" id="hbg12"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/PXn1l-R7uPY?autoplay=1&mute=1&loop=1&playlist=PXn1l-R7uPY&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="hbg" id="hbg13"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/9ofQZfvhtkU?autoplay=1&mute=1&loop=1&playlist=9ofQZfvhtkU&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="hbg" id="hbg14"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/tGqXFHPUO7c?autoplay=1&mute=1&loop=1&playlist=tGqXFHPUO7c&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="hbg" id="hbg15"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/Mz0W1VzmH84?autoplay=1&mute=1&loop=1&playlist=Mz0W1VzmH84&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="panel::after" style="position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(to top,rgba(12,12,12,0.88) 0%,rgba(12,12,12,0.05) 42%,transparent 60%),linear-gradient(to bottom,rgba(12,12,12,0.55) 0%,transparent 18%)"></div>
+    <div class="info">
       <div>
         <h1 class="hero-name">ELIZA</h1>
         <p class="hero-sub">Los Angeles &nbsp;×&nbsp; New York</p>
       </div>
       <div class="hero-hint">
-        <div class="hint-bar"></div>
+        <div class="hint-line"></div>
         Scroll or swipe
       </div>
     </div>
   </div>
 
-  <!-- 1: COMM 1 -->
-  <div class="panel" data-section="commercials" data-idx="1">
-    <div class="section-start-label">Commercials</div>
-    <div class="panel-video">
-      <iframe data-src="https://player.vimeo.com/video/1171005604?autoplay=1&muted=1&loop=1&background=1"
-        src="about:blank" allow="autoplay"></iframe>
-    </div>
-    <div class="panel-info">
+  <!-- 1: COMM 1 — Vans -->
+  <div class="panel" data-section="commercials">
+    <div class="sec-label">Commercials</div>
+    <div class="vid"><iframe src="about:blank" data-src="https://player.vimeo.com/video/1171005604?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
+    <div class="info">
       <div>
-        <div class="panel-category">Commercials</div>
-        <div class="panel-title">Vans — <em>Worn Loud Since 1966</em></div>
-        <div class="panel-meta">2025</div>
+        <div class="info-cat">Commercials</div>
+        <div class="info-title">Vans — <em>Worn Loud Since 1966</em></div>
+        <div class="info-meta">2025</div>
       </div>
     </div>
   </div>
 
   <!-- 2: COMM 2 -->
-  <div class="panel" data-section="commercials" data-idx="2">
-    <div class="panel-video">
-      <iframe data-src="https://www.youtube-nocookie.com/embed/gXcLuhXj4LU?autoplay=1&mute=1&loop=1&playlist=gXcLuhXj4LU&controls=0&disablekb=1&rel=0"
-        src="about:blank" allow="autoplay"></iframe>
-    </div>
-    <div class="panel-info">
+  <div class="panel" data-section="commercials">
+    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/gXcLuhXj4LU?autoplay=1&mute=1&loop=1&playlist=gXcLuhXj4LU&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="info">
       <div>
-        <div class="panel-category">Commercials</div>
-        <div class="panel-title"><em>Project Title</em></div>
-        <div class="panel-meta">2024</div>
+        <div class="info-cat">Commercials</div>
+        <div class="info-title"><em>Add Title</em></div>
+        <div class="info-meta">2024</div>
       </div>
     </div>
   </div>
 
   <!-- 3: COMM 3 -->
-  <div class="panel" data-section="commercials" data-idx="3">
-    <div class="panel-video">
-      <iframe data-src="https://www.youtube-nocookie.com/embed/Cf1hKtrA9lg?autoplay=1&mute=1&loop=1&playlist=Cf1hKtrA9lg&controls=0&disablekb=1&rel=0"
-        src="about:blank" allow="autoplay"></iframe>
-    </div>
-    <div class="panel-info">
+  <div class="panel" data-section="commercials">
+    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/Cf1hKtrA9lg?autoplay=1&mute=1&loop=1&playlist=Cf1hKtrA9lg&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="info">
       <div>
-        <div class="panel-category">Commercials</div>
-        <div class="panel-title"><em>Project Title</em></div>
-        <div class="panel-meta">2024</div>
+        <div class="info-cat">Commercials</div>
+        <div class="info-title"><em>Add Title</em></div>
+        <div class="info-meta">2024</div>
       </div>
     </div>
   </div>
 
   <!-- 4: COMM 4 -->
-  <div class="panel" data-section="commercials" data-idx="4">
-    <div class="panel-video">
-      <iframe data-src="https://www.youtube-nocookie.com/embed/yD9Xo0V-hPw?autoplay=1&mute=1&loop=1&playlist=yD9Xo0V-hPw&controls=0&disablekb=1&rel=0"
-        src="about:blank" allow="autoplay"></iframe>
-    </div>
-    <div class="panel-info">
+  <div class="panel" data-section="commercials">
+    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/yD9Xo0V-hPw?autoplay=1&mute=1&loop=1&playlist=yD9Xo0V-hPw&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="info">
       <div>
-        <div class="panel-category">Commercials</div>
-        <div class="panel-title"><em>Project Title</em></div>
-        <div class="panel-meta">2024</div>
+        <div class="info-cat">Commercials</div>
+        <div class="info-title"><em>Add Title</em></div>
+        <div class="info-meta">2024</div>
       </div>
     </div>
   </div>
 
-  <!-- 5: MV 1 -->
-  <div class="panel" data-section="music" data-idx="5">
-    <div class="section-start-label">Music Videos</div>
-    <div class="panel-video">
-      <iframe data-src="https://player.vimeo.com/video/1076763984?autoplay=1&muted=1&loop=1&background=1"
-        src="about:blank" allow="autoplay"></iframe>
-    </div>
-    <div class="panel-info">
+  <!-- 5: MV 1 — Tate McCrae -->
+  <div class="panel" data-section="music">
+    <div class="sec-label">Music Videos</div>
+    <div class="vid"><iframe src="about:blank" data-src="https://player.vimeo.com/video/1076763984?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
+    <div class="info">
       <div>
-        <div class="panel-category">Music Videos</div>
-        <div class="panel-title">Tate McCrae — <em>Sportscar</em></div>
-        <div class="panel-meta">2024</div>
+        <div class="info-cat">Music Videos</div>
+        <div class="info-title">Tate McCrae — <em>Sportscar</em></div>
+        <div class="info-meta">2024</div>
       </div>
     </div>
   </div>
 
   <!-- 6: MV 2 -->
-  <div class="panel" data-section="music" data-idx="6">
-    <div class="panel-video">
-      <iframe data-src="https://player.vimeo.com/video/1093132338?autoplay=1&muted=1&loop=1&background=1"
-        src="about:blank" allow="autoplay"></iframe>
-    </div>
-    <div class="panel-info">
+  <div class="panel" data-section="music">
+    <div class="vid"><iframe src="about:blank" data-src="https://player.vimeo.com/video/1093132338?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
+    <div class="info">
       <div>
-        <div class="panel-category">Music Videos</div>
-        <div class="panel-title"><em>Project Title</em></div>
-        <div class="panel-meta">2024</div>
+        <div class="info-cat">Music Videos</div>
+        <div class="info-title"><em>Add Title</em></div>
+        <div class="info-meta">2024</div>
       </div>
     </div>
   </div>
 
   <!-- 7: MV 3 -->
-  <div class="panel" data-section="music" data-idx="7">
-    <div class="panel-video">
-      <iframe data-src="https://player.vimeo.com/video/1007834851?autoplay=1&muted=1&loop=1&background=1"
-        src="about:blank" allow="autoplay"></iframe>
-    </div>
-    <div class="panel-info">
+  <div class="panel" data-section="music">
+    <div class="vid"><iframe src="about:blank" data-src="https://player.vimeo.com/video/1007834851?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
+    <div class="info">
       <div>
-        <div class="panel-category">Music Videos</div>
-        <div class="panel-title"><em>Project Title</em></div>
-        <div class="panel-meta">2024</div>
+        <div class="info-cat">Music Videos</div>
+        <div class="info-title"><em>Add Title</em></div>
+        <div class="info-meta">2024</div>
       </div>
     </div>
   </div>
 
-  <!-- 8: STILLS placeholder -->
-  <div class="panel" data-section="stills" data-idx="8"
-    style="background:#0e0e0e; display:flex; align-items:center; justify-content:center;">
-    <div class="section-start-label">Stills</div>
-    <div style="text-align:center; position:relative; z-index:2;">
-      <div style="font-family:'Playfair Display',serif; font-size:clamp(48px,8vw,100px); font-weight:300; font-style:italic; color:rgba(238,235,229,0.12);">Stills</div>
-      <div style="margin-top:16px; font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:rgba(238,235,229,0.2);">Coming Soon</div>
+  <!-- 8: MV 4 — YouTube -->
+  <div class="panel" data-section="music">
+    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/7Lo8WTBuHDg?autoplay=1&mute=1&loop=1&playlist=7Lo8WTBuHDg&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="info">
+      <div>
+        <div class="info-cat">Music Videos</div>
+        <div class="info-title"><em>Add Title</em></div>
+        <div class="info-meta">2024</div>
+      </div>
     </div>
   </div>
 
-  <!-- 9: FEATURES placeholder -->
-  <div class="panel" data-section="features" data-idx="9"
-    style="background:#0e0e0e; display:flex; align-items:center; justify-content:center;">
-    <div class="section-start-label">Features</div>
-    <div style="text-align:center; position:relative; z-index:2;">
-      <div style="font-family:'Playfair Display',serif; font-size:clamp(48px,8vw,100px); font-weight:300; font-style:italic; color:rgba(238,235,229,0.12);">Features</div>
-      <div style="margin-top:16px; font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:rgba(238,235,229,0.2);">Coming Soon</div>
+  <!-- NEW COMMERCIALS -->
+  <div class="panel" data-section="commercials">
+    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/RaNRhFH4inM?autoplay=1&mute=1&loop=1&playlist=RaNRhFH4inM&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="info"><div>
+      <div class="info-cat">Commercials</div>
+      <div class="info-title"><em>Add Title</em></div>
+      <div class="info-meta">2024</div>
+    </div></div>
+  </div>
+
+  <div class="panel" data-section="commercials">
+    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/oIEKK_j0fss?autoplay=1&mute=1&loop=1&playlist=oIEKK_j0fss&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="info"><div>
+      <div class="info-cat">Commercials</div>
+      <div class="info-title"><em>Add Title</em></div>
+      <div class="info-meta">2024</div>
+    </div></div>
+  </div>
+
+  <div class="panel" data-section="commercials">
+    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/D7liwdjvhWc?autoplay=1&mute=1&loop=1&playlist=D7liwdjvhWc&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="info"><div>
+      <div class="info-cat">Commercials</div>
+      <div class="info-title"><em>Add Title</em></div>
+      <div class="info-meta">2024</div>
+    </div></div>
+  </div>
+
+  <div class="panel" data-section="commercials">
+    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/BjAaJEdiu68?autoplay=1&mute=1&loop=1&playlist=BjAaJEdiu68&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="info"><div>
+      <div class="info-cat">Commercials</div>
+      <div class="info-title"><em>Add Title</em></div>
+      <div class="info-meta">2024</div>
+    </div></div>
+  </div>
+
+  <!-- NEW MUSIC VIDEOS -->
+  <div class="panel" data-section="music">
+    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/PXn1l-R7uPY?autoplay=1&mute=1&loop=1&playlist=PXn1l-R7uPY&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="info"><div>
+      <div class="info-cat">Music Videos</div>
+      <div class="info-title"><em>Add Title</em></div>
+      <div class="info-meta">2024</div>
+    </div></div>
+  </div>
+
+  <div class="panel" data-section="music">
+    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/9ofQZfvhtkU?autoplay=1&mute=1&loop=1&playlist=9ofQZfvhtkU&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="info"><div>
+      <div class="info-cat">Music Videos</div>
+      <div class="info-title"><em>Add Title</em></div>
+      <div class="info-meta">2024</div>
+    </div></div>
+  </div>
+
+  <div class="panel" data-section="music">
+    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/tGqXFHPUO7c?autoplay=1&mute=1&loop=1&playlist=tGqXFHPUO7c&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="info"><div>
+      <div class="info-cat">Music Videos</div>
+      <div class="info-title"><em>Add Title</em></div>
+      <div class="info-meta">2024</div>
+    </div></div>
+  </div>
+
+  <div class="panel" data-section="music">
+    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/Mz0W1VzmH84?autoplay=1&mute=1&loop=1&playlist=Mz0W1VzmH84&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
+    <div class="info"><div>
+      <div class="info-cat">Music Videos</div>
+      <div class="info-title"><em>Add Title</em></div>
+      <div class="info-meta">2024</div>
+    </div></div>
+  </div>
+
+  <!-- 9: STILLS -->
+  <div class="panel placeholder-panel" data-section="stills">
+    <div class="sec-label">Stills</div>
+    <div class="placeholder-inner">
+      <div class="placeholder-title">Stills</div>
+      <div class="placeholder-sub">Coming Soon</div>
     </div>
   </div>
 
-  <!-- 10: FOOTER -->
-  <div id="panel-footer" data-section="footer">
+  <!-- 10: FEATURES -->
+  <div class="panel placeholder-panel" data-section="features">
+    <div class="sec-label">Features</div>
+    <div class="placeholder-inner">
+      <div class="placeholder-title">Features</div>
+      <div class="placeholder-sub">Coming Soon</div>
+    </div>
+  </div>
+
+  <!-- 11: FOOTER -->
+  <div id="footer-panel" data-section="footer">
     <div class="footer-name">Eliza<br><em>Padden</em></div>
-    <div class="footer-location">Los Angeles &nbsp;×&nbsp; New York</div>
+    <div class="footer-loc">Los Angeles &nbsp;×&nbsp; New York</div>
     <div class="footer-links">
       <a href="mailto:eliza@email.com">eliza@email.com</a>
       <a href="#">IMDb</a>
       <a href="#">Instagram</a>
       <a href="#">LinkedIn</a>
     </div>
-    <div class="footer-copy">© 2026 Eliza Padden — Film & Commercial Production</div>
+    <div class="footer-copy">© 2026 Eliza Padden — Film &amp; Commercial Production</div>
   </div>
 
-</div><!-- /h-track -->
+</div><!-- /track -->
 
 <script>
-const track    = document.getElementById('hTrack');
-const panels   = Array.from(track.children);
-const TOTAL    = panels.length;
-let current    = 0;
-let animating  = false;
+// ── all panels in order ──
+const track  = document.getElementById('track');
+const panels = Array.from(track.children);
+const TOTAL  = panels.length;
+let cur = 0, busy = false;
 
-/* ── Build progress dots ── */
-const dotsEl = document.getElementById('progressDots');
+// ── dots ──
+const dotsEl = document.getElementById('dots');
 panels.forEach((_, i) => {
   const d = document.createElement('div');
-  d.className = 'pdot' + (i === 0 ? ' active' : '');
-  d.onclick = () => goTo(i);
+  d.className = 'dot' + (i === 0 ? ' on' : '');
+  d.addEventListener('click', () => goTo(i));
   dotsEl.appendChild(d);
 });
-const dots = dotsEl.querySelectorAll('.pdot');
+const dots = dotsEl.querySelectorAll('.dot');
 
-/* ── Section index map ── */
-const sectionFirst = {};
+// ── section first-index map ──
+const secFirst = {};
 panels.forEach((p, i) => {
-  const s = p.getAttribute('data-section');
-  if (s && !sectionFirst[s]) sectionFirst[s] = i;
+  const s = p.dataset.section;
+  if (s && secFirst[s] === undefined) secFirst[s] = i;
 });
 
-/* ── Navigate ── */
-function goTo(n, force) {
-  if (animating && !force) return;
-  n = Math.max(0, Math.min(TOTAL - 1, n));
-  if (n === current && !force) return;
-
-  // pause current iframe
-  const oldIframe = panels[current].querySelector('iframe');
-  if (oldIframe && oldIframe.getAttribute('data-src')) {
-    oldIframe.src = 'about:blank';
-  }
-
-  current = n;
-  track.style.transform = `translateX(-${current * 100}vw)`;
-
-  // play new iframe (after slight delay for transition)
-  const newPanel = panels[current];
-  const newIframe = newPanel.querySelector('iframe[data-src]');
-  if (newIframe) {
-    setTimeout(() => {
-      newIframe.src = newIframe.getAttribute('data-src');
-    }, 200);
-  }
-
-  // update dots
-  dots.forEach((d, i) => d.classList.toggle('active', i === current));
-
-  // update arrows
-  document.getElementById('arrow-left').classList.toggle('hidden', current === 0);
-  document.getElementById('arrow-right').classList.toggle('hidden', current === TOTAL - 1);
-
-  // update nav active
-  const section = newPanel.getAttribute('data-section');
-  document.querySelectorAll('.nav-links a').forEach(a => {
-    const s = a.getAttribute('onclick').match(/'(\w+)'/);
-    a.classList.toggle('active', s && s[1] === section);
-  });
-
-  animating = true;
-  setTimeout(() => animating = false, 750);
+// ── iframe src management ──
+function getIframe(panel) {
+  return panel.querySelector('.vid iframe, .hbg.on iframe');
+}
+function activatePanel(panel) {
+  const iframe = panel.querySelector('.vid iframe');
+  if (!iframe) return;
+  const src = iframe.getAttribute('data-src');
+  if (src && iframe.src !== src) iframe.src = src;
+}
+function deactivatePanel(panel) {
+  const iframe = panel.querySelector('.vid iframe');
+  if (!iframe) return;
+  if (iframe.getAttribute('data-src')) iframe.src = 'about:blank';
 }
 
-function next() { goTo(current + 1); }
-function prev() { goTo(current - 1); }
+// ── hero bg reel ──
+const hbgs = Array.from(document.querySelectorAll('.hbg'));
+let hCur = 0, heroTimer = null;
+
+function cycleHero() {
+  const next = (hCur + 1) % hbgs.length;
+  const nextIframe = hbgs[next].querySelector('iframe');
+  const src = nextIframe.getAttribute('data-src');
+  if (src && nextIframe.src === 'about:blank') nextIframe.src = src;
+  hbgs[hCur].classList.remove('on');
+  hbgs[next].classList.add('on');
+  hCur = next;
+}
+function startHero() { if (!heroTimer) heroTimer = setInterval(cycleHero, 5000); }
+function stopHero()  { clearInterval(heroTimer); heroTimer = null; }
+startHero();
+
+// ── main nav ──
+function updateUI() {
+  // arrows
+  document.getElementById('arr-left').classList.toggle('hide', cur === 0);
+  document.getElementById('arr-right').classList.toggle('hide', cur === TOTAL - 1);
+  // dots
+  dots.forEach((d, i) => d.classList.toggle('on', i === cur));
+  // nav buttons
+  const sec = panels[cur].dataset.section;
+  document.querySelectorAll('.nav-links button').forEach(b => {
+    b.classList.toggle('active', b.textContent.toLowerCase().replace(' ','') === sec ||
+      (sec === 'music' && b.textContent.toLowerCase().includes('music')) ||
+      (sec === 'commercials' && b.textContent.toLowerCase().includes('comm')));
+  });
+}
+
+// ── goTo ──
+function goTo(n) {
+  if (busy) return;
+  n = Math.max(0, Math.min(TOTAL - 1, n));
+  if (n === cur) return;
+
+  deactivatePanel(panels[cur]);
+  if (cur === 0) stopHero();
+
+  cur = n;
+  track.style.transform = `translateX(calc(-${cur} * 100vw))`;
+
+  if (cur === 0) {
+    setTimeout(startHero, 400);
+  } else {
+    setTimeout(() => activatePanel(panels[cur]), 220);
+  }
+
+  updateUI();
+  busy = true;
+  setTimeout(() => busy = false, 750);
+}
+
+function next() { goTo(cur + 1); }
+function prev() { goTo(cur - 1); }
 
 function goToSection(name) {
-  if (sectionFirst[name] !== undefined) goTo(sectionFirst[name]);
+  const idx = secFirst[name];
+  if (idx !== undefined) goTo(idx);
 }
 
-/* ── Mouse wheel ── */
-let wheelLock = false;
+// ── scroll wheel ──
+let wLock = false;
 window.addEventListener('wheel', e => {
-  if (wheelLock) return;
-  wheelLock = true;
-  setTimeout(() => wheelLock = false, 800);
-  if (e.deltaY > 30 || e.deltaX > 30)       next();
-  else if (e.deltaY < -30 || e.deltaX < -30) prev();
+  if (wLock) return;
+  wLock = true; setTimeout(() => wLock = false, 820);
+  (e.deltaY > 20 || e.deltaX > 20) ? next() : (e.deltaY < -20 || e.deltaX < -20) ? prev() : null;
 }, { passive: true });
 
-/* ── Touch swipe ── */
-let tx = 0, ty = 0;
-window.addEventListener('touchstart', e => {
-  tx = e.touches[0].clientX;
-  ty = e.touches[0].clientY;
-}, { passive: true });
-
+// ── touch ──
+let tx = 0;
+window.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
 window.addEventListener('touchend', e => {
   const dx = e.changedTouches[0].clientX - tx;
-  const dy = e.changedTouches[0].clientY - ty;
-  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-    dx < 0 ? next() : prev();
-  }
+  if (Math.abs(dx) > 50) dx < 0 ? next() : prev();
 }, { passive: true });
 
-/* ── Keyboard ── */
-let keyLock = false;
+// ── keyboard ──
+let kLock = false;
 window.addEventListener('keydown', e => {
-  if (keyLock) return;
-  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-    keyLock = true; setTimeout(() => keyLock = false, 800);
-    next();
-  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-    keyLock = true; setTimeout(() => keyLock = false, 800);
-    prev();
-  }
+  if (kLock) return;
+  if (['ArrowRight','ArrowDown'].includes(e.key)) { kLock=true; setTimeout(()=>kLock=false,820); next(); }
+  if (['ArrowLeft','ArrowUp'].includes(e.key))    { kLock=true; setTimeout(()=>kLock=false,820); prev(); }
 });
 
-/* ── Desktop drag ── */
-let dragStart = null, dragged = false;
-window.addEventListener('mousedown', e => { dragStart = e.clientX; dragged = false; });
-window.addEventListener('mousemove', e => {
-  if (dragStart !== null && Math.abs(e.clientX - dragStart) > 8) dragged = true;
-});
+// ── desktop drag ──
+let dStart = null, dMoved = false;
+window.addEventListener('mousedown', e => { dStart = e.clientX; dMoved = false; });
+window.addEventListener('mousemove', e => { if (dStart && Math.abs(e.clientX - dStart) > 8) dMoved = true; });
 window.addEventListener('mouseup', e => {
-  if (dragStart === null) return;
-  const dx = e.clientX - dragStart;
-  dragStart = null;
-  if (!dragged) return;
-  if (dx < -60) next();
-  else if (dx > 60) prev();
+  if (!dStart) return;
+  const dx = e.clientX - dStart; dStart = null;
+  if (!dMoved) return;
+  if (dx < -60) next(); else if (dx > 60) prev();
 });
+
+updateUI();
 </script>
 </body>
 </html>

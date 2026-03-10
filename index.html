@@ -358,7 +358,7 @@ footer {
     <a href="#stills">Stills</a>
     <a href="#features">Features</a>
   </div>
-  <a class="nav-contact" href="mailto:eliza@email.com">Contact</a>
+  <a class="nav-contact" href="#" onclick="window.location='mailto:eliza@email.com';return false;">Contact</a>
 </nav>
 
 <!-- HERO -->
@@ -587,7 +587,7 @@ footer {
     <div class="footer-loc">Los Angeles &nbsp;×&nbsp; New York</div>
   </div>
   <div class="footer-links">
-    <a href="mailto:eliza@email.com">eliza@email.com</a>
+    <a href="#" onclick="window.location='mailto:eliza@email.com';return false;">eliza@email.com</a>
     <a href="#">IMDb</a>
     <a href="#">Instagram</a>
     <a href="#">LinkedIn</a>
@@ -597,77 +597,60 @@ footer {
 
 <script>
 function buildSrc(card) {
-  const yt    = card.dataset.yt;
-  const vimeo = card.dataset.vimeo;
-  if (yt)    return `https://www.youtube-nocookie.com/embed/${yt}?autoplay=1&controls=1&rel=0&modestbranding=1`;
-  if (vimeo) return `https://player.vimeo.com/video/${vimeo}?autoplay=1`;
+  var yt = card.dataset.yt;
+  var vimeo = card.dataset.vimeo;
+  if (yt) return 'https://www.youtube-nocookie.com/embed/' + yt + '?autoplay=1&controls=1&rel=0&modestbranding=1&iv_load_policy=3';
+  if (vimeo) return 'https://player.vimeo.com/video/' + vimeo + '?autoplay=1';
   return '';
 }
 
-let activeCard = null;
+var activeCard = null;
 
 function playCard(card) {
   if (card === activeCard) return;
-
-  // stop previous
   if (activeCard) {
     activeCard.classList.remove('playing');
     activeCard.querySelector('.card-iframe').innerHTML = '';
     activeCard = null;
   }
-
-  // start new
-  const iframeWrap = card.querySelector('.card-iframe');
-  iframeWrap.innerHTML = `<iframe src="${buildSrc(card)}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+  var iframeWrap = card.querySelector('.card-iframe');
+  var src = buildSrc(card);
+  iframeWrap.innerHTML = '<iframe src="' + src + '" allow="autoplay; fullscreen" allowfullscreen></iframe>';
   card.classList.add('playing');
   activeCard = card;
 }
 
-/* attach click to the play overlay (visible before playing) and the card itself */
-document.querySelectorAll('.card:not(.placeholder)').forEach(card => {
-  card.addEventListener('click', (e) => {
-    // if clicking inside an active iframe, don't interfere
+document.querySelectorAll('.card:not(.placeholder)').forEach(function(card) {
+  card.addEventListener('click', function() {
     if (card === activeCard) return;
     playCard(card);
   });
 });
 
-/* ── row scroll arrows ── */
-const rows = {
-  comm:  document.getElementById('row-comm'),
-  music: document.getElementById('row-music'),
+var rows = {
+  comm: document.getElementById('row-comm'),
+  music: document.getElementById('row-music')
 };
 
 function rowScroll(key, dir) {
-  const row = rows[key];
-  const amount = row.clientWidth * 0.75;
-  row.scrollBy({ left: dir * amount, behavior: 'smooth' });
+  var row = rows[key];
+  row.scrollBy({ left: dir * row.clientWidth * 0.75, behavior: 'smooth' });
 }
 
-// Show/hide arrows based on scroll position
-Object.entries(rows).forEach(([key, row]) => {
-  const al = document.getElementById('al-' + key);
-  const ar = document.getElementById('ar-' + key);
-  row.addEventListener('scroll', () => {
+Object.keys(rows).forEach(function(key) {
+  var row = rows[key];
+  var al = document.getElementById('al-' + key);
+  var ar = document.getElementById('ar-' + key);
+  if (!row || !al || !ar) return;
+  row.addEventListener('scroll', function() {
     al.classList.toggle('hide', row.scrollLeft < 20);
     ar.classList.toggle('hide', row.scrollLeft + row.clientWidth >= row.scrollWidth - 20);
   }, { passive: true });
 });
 
-/* ── nav active on scroll ── */
-const nav = document.getElementById('nav');
-const sections = document.querySelectorAll('section[id], footer');
-const navLinks = document.querySelectorAll('.nav-links a');
-
-window.addEventListener('scroll', () => {
+var nav = document.getElementById('nav');
+window.addEventListener('scroll', function() {
   nav.classList.toggle('solid', window.scrollY > 80);
-  let cur = '';
-  sections.forEach(s => {
-    if (window.scrollY >= s.offsetTop - 120) cur = s.id || '';
-  });
-  navLinks.forEach(a => {
-    a.classList.toggle('active', a.getAttribute('href') === '#' + cur);
-  });
 }, { passive: true });
 </script>
 </body>

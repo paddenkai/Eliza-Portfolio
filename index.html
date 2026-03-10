@@ -587,7 +587,7 @@ footer {
     <div class="footer-loc">Los Angeles &nbsp;×&nbsp; New York</div>
   </div>
   <div class="footer-links">
-    <a href="/cdn-cgi/l/email-protection#d0b5bcb9aab190b5bdb1b9bcfeb3bfbd"><span class="__cf_email__" data-cfemail="7411181d0e15341119151d185a171b19">[email&#160;protected]</span></a>
+    <a href="mailto:eliza@email.com">eliza@email.com</a>
     <a href="#">IMDb</a>
     <a href="#">Instagram</a>
     <a href="#">LinkedIn</a>
@@ -595,7 +595,7 @@ footer {
   <div class="footer-copy">© 2026 Eliza Padden — Film & Commercial Production</div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 function buildSrc(card) {
   const yt    = card.dataset.yt;
   const vimeo = card.dataset.vimeo;
@@ -657,7 +657,18 @@ Object.entries(rows).forEach(([key, row]) => {
 /* ── nav active on scroll ── */
 const nav = document.getElementById('nav');
 const sections = document.querySelectorAll('section[id], footer');
-const navLinks  = document.querySelectorAll('.nav-links a');
+const navLinks = document.querySelectorAll('.nav-links a');
 
 window.addEventListener('scroll', () => {
-  nav.classList.toggle('solid', window.scrollY
+  nav.classList.toggle('solid', window.scrollY > 80);
+  let cur = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 120) cur = s.id || '';
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + cur);
+  });
+}, { passive: true });
+</script>
+</body>
+</html>

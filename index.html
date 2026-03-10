@@ -3,648 +3,695 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Eliza</title>
+<title>Eliza Padden</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@200;300;400&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --bg: #0c0c0c;
   --fg: #eeebe5;
-  --muted: rgba(238,235,229,0.42);
-  --border: rgba(238,235,229,0.1);
+  --muted: rgba(238,235,229,0.4);
+  --border: rgba(238,235,229,0.09);
+  --card-h: 52vh;
+  --card-w: calc(var(--card-h) * 16 / 9);
+  --gap: 3px;
+  --pad: 40px;
 }
-html, body {
-  width: 100%; height: 100%;
+html { scroll-behavior: smooth; }
+body {
   background: var(--bg); color: var(--fg);
   font-family: 'DM Sans', sans-serif; font-weight: 300;
-  overflow: hidden; user-select: none;
+  overflow-x: hidden; overflow-y: auto;
+  cursor: default;
 }
 
-/* NAV */
+/* ═══ NAV ═══ */
 nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 200;
   display: flex; justify-content: space-between; align-items: center;
-  padding: 0 40px; height: 64px;
-  background: linear-gradient(to bottom, rgba(12,12,12,0.92) 0%, transparent 100%);
-  pointer-events: none;
+  padding: 0 var(--pad); height: 60px;
+  transition: background 0.4s, border-color 0.4s;
+  border-bottom: 1px solid transparent;
 }
-nav > * { pointer-events: auto; }
+nav.solid { background: rgba(12,12,12,0.97); border-color: var(--border); }
 .nav-logo {
   font-family: 'Playfair Display', serif;
-  font-size: 19px; font-weight: 300; letter-spacing: 0.06em;
-  color: var(--fg); text-decoration: none; cursor: pointer;
+  font-size: 18px; font-weight: 300; letter-spacing: 0.05em;
+  color: var(--fg); cursor: pointer; text-decoration: none;
+  transition: opacity 0.2s;
 }
-.nav-logo:hover { opacity: 0.6; }
-.nav-links { display: flex; }
-.nav-links button {
+.nav-logo:hover { opacity: 0.55; }
+.nav-links { display: flex; align-items: center; }
+.nav-links a {
   font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--muted); background: none; border: none; cursor: pointer;
-  padding: 8px 14px; font-family: 'DM Sans', sans-serif; font-weight: 300;
-  transition: color 0.25s; position: relative;
+  color: var(--muted); text-decoration: none; cursor: pointer;
+  padding: 6px 14px; transition: color 0.2s; position: relative;
+  background: none; border: none; font-family: 'DM Sans', sans-serif;
 }
-.nav-links button:hover, .nav-links button.active { color: var(--fg); }
-.nav-links button.active::after {
-  content: ''; position: absolute; bottom: 2px; left: 14px; right: 14px;
+.nav-links a:hover, .nav-links a.active { color: var(--fg); }
+.nav-links a.active::after {
+  content: ''; position: absolute; bottom: 0; left: 14px; right: 14px;
   height: 1px; background: var(--fg);
 }
+.nav-right { display: flex; align-items: center; gap: 14px; }
 .nav-contact {
   font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--muted); text-decoration: none; transition: color 0.25s;
+  color: var(--muted); text-decoration: none; transition: color 0.2s;
 }
 .nav-contact:hover { color: var(--fg); }
 
-/* SIDE ARROWS */
-.side-arrow {
-  position: fixed; top: 50%; transform: translateY(-50%); z-index: 150;
-  width: 48px; height: 48px; border-radius: 50%;
-  border: 1px solid var(--border); background: rgba(12,12,12,0.55);
-  backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: border-color 0.25s, background 0.25s, opacity 0.3s;
+/* sound btn */
+#sound-btn {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--border); background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: border-color 0.2s, background 0.2s;
+  flex-shrink: 0; color: var(--muted);
 }
-.side-arrow:hover { border-color: rgba(238,235,229,0.4); background: rgba(238,235,229,0.08); }
-.side-arrow svg { width: 16px; height: 16px; fill: none; stroke: var(--fg); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.side-arrow.hide { opacity: 0; pointer-events: none; }
-#arr-left  { left: 20px; }
-#arr-right { right: 20px; }
+#sound-btn:hover { border-color: rgba(238,235,229,0.3); color: var(--fg); }
+#sound-btn.on { color: var(--fg); border-color: rgba(238,235,229,0.3); }
+#sound-btn svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
-/* DOTS */
-#dots {
-  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-  display: flex; gap: 7px; z-index: 150;
-}
-.dot {
-  width: 4px; height: 4px; border-radius: 50%;
-  background: rgba(238,235,229,0.2); cursor: pointer;
-  transition: background 0.3s, transform 0.3s;
-}
-.dot.on { background: var(--fg); transform: scale(1.4); }
-
-/* TRACK */
-#track {
-  display: flex; height: 100vh; width: max-content;
-  transition: transform 0.72s cubic-bezier(0.77,0,0.18,1);
-  will-change: transform;
+/* ═══ HERO ═══ */
+#hero {
+  position: relative; width: 100%; height: 100vh; overflow: hidden;
 }
 
-/* PANEL */
-.panel {
-  position: relative; width: 100vw; height: 100vh;
-  overflow: hidden; flex-shrink: 0; background: #080808;
+/* collage of youtube thumbnails */
+#collage {
+  position: absolute; inset: 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: var(--gap);
 }
-.panel::after {
-  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background:
-    linear-gradient(to top,  rgba(12,12,12,0.92) 0%, rgba(12,12,12,0.02) 42%, transparent 60%),
-    linear-gradient(to bottom, rgba(12,12,12,0.55) 0%, transparent 18%);
+.c-cell {
+  overflow: hidden; background: #111;
+}
+.c-cell img {
+  width: 100%; height: 100%; object-fit: cover;
+  filter: grayscale(25%) brightness(0.5);
+  transform: scale(1.06);
+  transition: filter 6s ease;
+}
+.c-cell:nth-child(odd)  img { animation: panA 20s ease-in-out infinite alternate; }
+.c-cell:nth-child(even) img { animation: panB 24s ease-in-out infinite alternate; }
+@keyframes panA { to { transform: scale(1.06) translate(-2%, -1%); } }
+@keyframes panB { to { transform: scale(1.06) translate(1.5%, 2%); } }
+
+#collage-scrim {
+  position: absolute; inset: 0; z-index: 1;
+  background: rgba(12,12,12,0.55);
+}
+/* extra bottom fade so text is legible */
+#collage-scrim::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 55%;
+  background: linear-gradient(to top, rgba(12,12,12,0.95) 0%, transparent 100%);
 }
 
-/* FULLSCREEN VIDEO inside panel */
-.vid {
-  position: absolute; inset: 0; overflow: hidden;
-}
-.vid iframe {
-  position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100vw; height: 56.25vw;
-  min-height: 100vh; min-width: 177.78vh;
-  border: none; pointer-events: none;
-}
-
-/* PANEL INFO */
-.info {
-  position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
-  padding: 36px 40px;
-  display: flex; justify-content: space-between; align-items: flex-end;
-}
-.info-cat {
-  font-size: 9px; letter-spacing: 0.34em; text-transform: uppercase;
-  color: var(--muted); margin-bottom: 10px;
-}
-.info-title {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(22px, 3.2vw, 48px); font-weight: 300; line-height: 1.15;
-}
-.info-title em { font-style: italic; }
-.info-meta {
-  margin-top: 8px; font-size: 10px;
-  letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
-}
-/* section label top-left on first of section */
-.sec-label {
-  position: absolute; top: 80px; left: 40px; z-index: 10;
-  font-family: 'Playfair Display', serif; font-style: italic;
-  font-size: clamp(13px, 1.4vw, 18px); font-weight: 300;
-  letter-spacing: 0.06em; color: rgba(238,235,229,0.3);
-  pointer-events: none;
-}
-
-/* HERO PANEL */
-#hero-panel { background: #050505; }
-/* bg reel frames */
-.hbg {
-  position: absolute; inset: 0; opacity: 0;
-  transition: opacity 1.4s ease;
-}
-.hbg.on { opacity: 1; }
-.hbg iframe {
-  position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100vw; height: 56.25vw;
-  min-height: 100vh; min-width: 177.78vh;
-  border: none; pointer-events: none;
+#hero-text {
+  position: absolute; inset: 0; z-index: 2;
+  display: flex; flex-direction: column;
+  justify-content: flex-end; padding: 52px var(--pad);
 }
 .hero-name {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(96px, 17vw, 210px); font-weight: 300;
+  font-size: clamp(60px, 9.5vw, 130px); font-weight: 300;
   letter-spacing: -0.03em; line-height: 1;
-  text-shadow: 0 2px 60px rgba(0,0,0,0.5);
-  animation: nameIn 1.6s cubic-bezier(0.16,1,0.3,1) 0.1s both;
+  text-shadow: 0 2px 40px rgba(0,0,0,0.4);
+  animation: nameIn 1.5s cubic-bezier(0.16,1,0.3,1) 0.1s both;
 }
+.hero-name em { font-style: italic; display: block; }
 @keyframes nameIn {
-  from { opacity:0; transform:translateY(18px); letter-spacing:0.08em; }
+  from { opacity:0; transform:translateY(14px); letter-spacing:0.04em; }
   to   { opacity:1; transform:translateY(0);    letter-spacing:-0.03em; }
 }
-.hero-sub {
-  margin-top: 12px; font-size: 10px; letter-spacing: 0.3em;
+.hero-meta {
+  margin-top: 14px; font-size: 10px; letter-spacing: 0.3em;
   text-transform: uppercase; color: var(--muted);
-  animation: fadeUp 1s ease 1s both;
+  animation: fadeUp 1s ease 0.9s both;
 }
-.hero-hint {
-  display: flex; align-items: center; gap: 10px; padding-bottom: 6px;
-  font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--muted);
-  animation: fadeUp 1s ease 1.3s both; flex-shrink: 0;
+.hero-scroll {
+  position: absolute; right: var(--pad); bottom: 52px; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  animation: fadeUp 1s ease 1.3s both;
 }
-.hint-line {
-  width: 36px; height: 1px;
-  background: linear-gradient(to right, transparent, var(--muted));
+.hero-scroll span {
+  font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--muted); writing-mode: vertical-rl;
 }
+.scroll-bar {
+  width: 1px; height: 40px;
+  background: linear-gradient(to bottom, var(--muted), transparent);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
 @keyframes fadeUp {
-  from { opacity:0; transform:translateY(10px); }
+  from { opacity:0; transform:translateY(8px); }
   to   { opacity:1; transform:translateY(0); }
 }
 
-/* PLACEHOLDER panels (stills/features) */
-.placeholder-panel {
-  display: flex; align-items: center; justify-content: center;
-  background: #0e0e0e;
+/* ═══ SECTIONS ═══ */
+.section {
+  padding: 72px 0 60px;
+  border-top: 1px solid var(--border);
 }
-.placeholder-panel::after { display: none; }
-.placeholder-inner { text-align: center; }
-.placeholder-title {
-  font-family: 'Playfair Display', serif; font-style: italic;
-  font-size: clamp(48px,8vw,100px); font-weight: 300;
-  color: rgba(238,235,229,0.1);
+.section-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 0 var(--pad) 24px;
 }
-.placeholder-sub {
-  margin-top: 14px; font-size: 9px; letter-spacing: 0.3em;
-  text-transform: uppercase; color: rgba(238,235,229,0.18);
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 4vw, 48px); font-weight: 300;
+  letter-spacing: -0.01em;
+}
+.section-title em { font-style: italic; }
+.section-count {
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
 }
 
-/* FOOTER PANEL */
-#footer-panel {
-  width: 60vw; min-width: 480px; flex-shrink: 0;
-  background: var(--bg); border-left: 1px solid var(--border);
-  display: flex; flex-direction: column; justify-content: center;
-  padding: 80px 64px;
+/* horizontal scroll row */
+.h-row-wrap {
+  position: relative;
 }
-#footer-panel::after { display: none; }
+.h-row {
+  display: flex; gap: var(--gap);
+  overflow-x: auto; overflow-y: hidden;
+  padding: 0 var(--pad);
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.h-row::-webkit-scrollbar { display: none; }
+
+/* video card */
+.card {
+  flex-shrink: 0;
+  width: var(--card-w);
+  height: var(--card-h);
+  position: relative; overflow: hidden;
+  background: #0e0e0e; cursor: pointer;
+}
+
+/* wider first card in each row */
+.card.featured {
+  width: calc(var(--card-w) * 1.5);
+}
+
+.card-thumb {
+  width: 100%; height: 100%;
+  position: relative; overflow: hidden;
+}
+.card-thumb img {
+  width: 100%; height: 100%; object-fit: cover;
+  filter: grayscale(15%) brightness(0.72);
+  transform: scale(1.03);
+  transition: transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94),
+              filter 0.5s ease;
+}
+.card:hover .card-thumb img {
+  transform: scale(1.07);
+  filter: grayscale(0%) brightness(0.82);
+}
+
+/* iframe overlay — loads on click */
+.card-iframe {
+  position: absolute; inset: 0; z-index: 2;
+  opacity: 0; transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+.card-iframe iframe {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 100%; height: 56.25%;
+  min-height: 100%; min-width: 177.78%;
+  border: none;
+}
+.card.playing .card-iframe { opacity: 1; pointer-events: auto; }
+
+/* play button */
+.card-play {
+  position: absolute; inset: 0; z-index: 3;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.3s;
+}
+.card.playing .card-play { opacity: 0; pointer-events: none; }
+.play-circle {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid rgba(238,235,229,0.35);
+  background: rgba(12,12,12,0.4);
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.25s, background 0.25s, transform 0.25s;
+}
+.card:hover .play-circle {
+  border-color: rgba(238,235,229,0.7);
+  background: rgba(238,235,229,0.1);
+  transform: scale(1.1);
+}
+.play-circle::after {
+  content: ''; width:0; height:0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 13px solid var(--fg);
+  margin-left: 3px;
+}
+
+/* info overlay */
+.card-info {
+  position: absolute; bottom: 0; left: 0; right: 0; z-index: 4;
+  padding: 18px 20px;
+  background: linear-gradient(to top, rgba(12,12,12,0.9) 0%, transparent 100%);
+  opacity: 0; transform: translateY(4px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+}
+.card:hover .card-info, .card.playing .card-info {
+  opacity: 1; transform: translateY(0);
+}
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(14px, 1.4vw, 20px); font-weight: 300; line-height: 1.2;
+}
+.card-title em { font-style: italic; }
+.card-meta {
+  margin-top: 4px; font-size: 9px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+}
+
+/* row scroll arrows */
+.row-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 10;
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 1px solid var(--border); background: rgba(12,12,12,0.7);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: border-color 0.2s, background 0.2s, opacity 0.3s;
+  opacity: 0;
+}
+.h-row-wrap:hover .row-arrow { opacity: 1; }
+.row-arrow:hover { border-color: rgba(238,235,229,0.4); background: rgba(238,235,229,0.08); }
+.row-arrow.hide { opacity: 0 !important; pointer-events: none; }
+.row-arrow svg { width: 14px; height: 14px; fill: none; stroke: var(--fg); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.row-arr-left  { left: 8px; }
+.row-arr-right { right: 8px; }
+
+/* placeholder cards */
+.card.placeholder {
+  border: 1px dashed rgba(238,235,229,0.08);
+  background: #0e0e0e;
+  display: flex; align-items: center; justify-content: center;
+  cursor: default;
+}
+.card.placeholder span {
+  font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase;
+  color: rgba(238,235,229,0.14);
+}
+
+/* ═══ FOOTER ═══ */
+footer {
+  padding: 80px var(--pad) 48px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: flex-end;
+  flex-wrap: wrap; gap: 40px;
+}
 .footer-name {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(48px,7vw,90px); font-weight: 300;
+  font-size: clamp(40px, 6vw, 80px); font-weight: 300;
   letter-spacing: -0.02em; line-height: 0.95;
 }
 .footer-name em { font-style: italic; }
 .footer-loc {
-  margin-top: 16px; font-size: 10px; letter-spacing: 0.3em;
+  margin-top: 14px; font-size: 10px; letter-spacing: 0.28em;
   text-transform: uppercase; color: var(--muted);
 }
-.footer-links { margin-top: 48px; display: flex; flex-direction: column; gap: 12px; }
+.footer-links { display: flex; flex-direction: column; gap: 10px; text-align: right; }
 .footer-links a {
-  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--muted); text-decoration: none; transition: color 0.25s; width: fit-content;
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; transition: color 0.2s;
 }
 .footer-links a:hover { color: var(--fg); }
 .footer-copy {
-  margin-top: 60px; font-size: 9px; letter-spacing: 0.16em;
-  text-transform: uppercase; color: rgba(238,235,229,0.16);
+  width: 100%; padding-top: 28px; border-top: 1px solid var(--border);
+  font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: rgba(238,235,229,0.15);
 }
 
-/* MOBILE */
+/* ═══ MOBILE ═══ */
 @media (max-width: 768px) {
-  nav { padding: 0 20px; }
-  .nav-links { display: none; }
-  .info { padding: 24px 20px; flex-direction: column; align-items: flex-start; gap: 10px; }
-  #arr-left  { left: 10px; width: 40px; height: 40px; }
-  #arr-right { right: 10px; width: 40px; height: 40px; }
-  #footer-panel { width: 100vw; min-width: unset; padding: 60px 28px; }
+  :root { --card-h: 38vw; --pad: 20px; }
+  .hero-name { font-size: clamp(52px, 14vw, 90px); }
+  .nav-links a { padding: 6px 9px; font-size: 9px; }
+  .footer-links { text-align: left; }
+  .card.featured { width: var(--card-w); }
 }
 </style>
 </head>
 <body>
 
 <!-- NAV -->
-<nav>
-  <span class="nav-logo" onclick="goTo(0)">Eliza</span>
+<nav id="nav">
+  <a class="nav-logo" href="#hero">Eliza Padden</a>
   <div class="nav-links">
-    <button onclick="goToSection('commercials')">Commercials</button>
-    <button onclick="goToSection('music')">Music Videos</button>
-    <button onclick="goToSection('stills')">Stills</button>
-    <button onclick="goToSection('features')">Features</button>
+    <a href="#commercials">Commercials</a>
+    <a href="#music">Music Videos</a>
+    <a href="#stills">Stills</a>
+    <a href="#features">Features</a>
   </div>
-  <a class="nav-contact" href="mailto:eliza@email.com">Contact</a>
+  <div class="nav-right">
+    <button id="sound-btn" title="Toggle sound">
+      <svg id="icon-mute" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+      <svg id="icon-sound" viewBox="0 0 24 24" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    </button>
+    <a class="nav-contact" href="mailto:eliza@email.com">Contact</a>
+  </div>
 </nav>
 
-<!-- SIDE ARROWS -->
-<button class="side-arrow hide" id="arr-left" onclick="prev()">
-  <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-</button>
-<button class="side-arrow" id="arr-right" onclick="next()">
-  <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
-</button>
+<!-- HERO -->
+<section id="hero">
+  <div id="collage">
+    <!-- 18 thumbnail cells — YouTube thumbnails load fast and look great -->
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/gXcLuhXj4LU/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/Cf1hKtrA9lg/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/7Lo8WTBuHDg/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/yD9Xo0V-hPw/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/RaNRhFH4inM/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/oIEKK_j0fss/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/D7liwdjvhWc/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/BjAaJEdiu68/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/PXn1l-R7uPY/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/9ofQZfvhtkU/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/tGqXFHPUO7c/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/Mz0W1VzmH84/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/gXcLuhXj4LU/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/7Lo8WTBuHDg/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/RaNRhFH4inM/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/yD9Xo0V-hPw/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/D7liwdjvhWc/maxresdefault.jpg" loading="lazy" alt=""></div>
+    <div class="c-cell"><img src="https://i.ytimg.com/vi/PXn1l-R7uPY/maxresdefault.jpg" loading="lazy" alt=""></div>
+  </div>
+  <div id="collage-scrim"></div>
+  <div id="hero-text">
+    <h1 class="hero-name">Eliza<em>Padden</em></h1>
+    <p class="hero-meta">Film &amp; Commercial Production &nbsp;·&nbsp; Los Angeles × New York</p>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-bar"></div>
+    <span>Scroll</span>
+  </div>
+</section>
 
-<!-- DOTS -->
-<div id="dots"></div>
+<!-- COMMERCIALS -->
+<section class="section" id="commercials">
+  <div class="section-head">
+    <h2 class="section-title"><em>Commercials</em></h2>
+    <span class="section-count">08 Projects</span>
+  </div>
+  <div class="h-row-wrap" id="wrap-comm">
+    <button class="row-arrow row-arr-left hide" id="al-comm" onclick="rowScroll('comm',-1)">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="h-row" id="row-comm">
 
-<!-- TRACK -->
-<div id="track">
-
-  <!-- 0: HERO -->
-  <div class="panel" id="hero-panel" data-section="hero">
-    <!-- bg reel: first one live, rest lazy -->
-    <div class="hbg on"  id="hbg0"><iframe src="https://player.vimeo.com/video/1076763984?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
-    <div class="hbg" id="hbg1"><iframe src="about:blank" data-src="https://player.vimeo.com/video/1171005604?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
-    <div class="hbg" id="hbg2"><iframe src="about:blank" data-src="https://player.vimeo.com/video/1093132338?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
-    <div class="hbg" id="hbg3"><iframe src="about:blank" data-src="https://player.vimeo.com/video/1007834851?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
-    <div class="hbg" id="hbg4"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/gXcLuhXj4LU?autoplay=1&mute=1&loop=1&playlist=gXcLuhXj4LU&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="hbg" id="hbg5"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/Cf1hKtrA9lg?autoplay=1&mute=1&loop=1&playlist=Cf1hKtrA9lg&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="hbg" id="hbg6"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/7Lo8WTBuHDg?autoplay=1&mute=1&loop=1&playlist=7Lo8WTBuHDg&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="hbg" id="hbg7"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/yD9Xo0V-hPw?autoplay=1&mute=1&loop=1&playlist=yD9Xo0V-hPw&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="hbg" id="hbg8"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/RaNRhFH4inM?autoplay=1&mute=1&loop=1&playlist=RaNRhFH4inM&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="hbg" id="hbg9"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/oIEKK_j0fss?autoplay=1&mute=1&loop=1&playlist=oIEKK_j0fss&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="hbg" id="hbg10"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/D7liwdjvhWc?autoplay=1&mute=1&loop=1&playlist=D7liwdjvhWc&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="hbg" id="hbg11"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/BjAaJEdiu68?autoplay=1&mute=1&loop=1&playlist=BjAaJEdiu68&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="hbg" id="hbg12"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/PXn1l-R7uPY?autoplay=1&mute=1&loop=1&playlist=PXn1l-R7uPY&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="hbg" id="hbg13"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/9ofQZfvhtkU?autoplay=1&mute=1&loop=1&playlist=9ofQZfvhtkU&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="hbg" id="hbg14"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/tGqXFHPUO7c?autoplay=1&mute=1&loop=1&playlist=tGqXFHPUO7c&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="hbg" id="hbg15"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/Mz0W1VzmH84?autoplay=1&mute=1&loop=1&playlist=Mz0W1VzmH84&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="panel::after" style="position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(to top,rgba(12,12,12,0.88) 0%,rgba(12,12,12,0.05) 42%,transparent 60%),linear-gradient(to bottom,rgba(12,12,12,0.55) 0%,transparent 18%)"></div>
-    <div class="info">
-      <div>
-        <h1 class="hero-name">ELIZA</h1>
-        <p class="hero-sub">Los Angeles &nbsp;×&nbsp; New York</p>
+      <div class="card featured" data-yt="gXcLuhXj4LU">
+        <div class="card-thumb"><img src="https://i.ytimg.com/vi/gXcLuhXj4LU/maxresdefault.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Commercial · 2024</div></div>
       </div>
-      <div class="hero-hint">
-        <div class="hint-line"></div>
-        Scroll or swipe
+
+      <div class="card" data-vimeo="1171005604">
+        <div class="card-thumb"><img src="https://vumbnail.com/1171005604.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title">Vans — <em>Worn Loud Since 1966</em></div><div class="card-meta">Commercial · 2025</div></div>
       </div>
-    </div>
-  </div>
 
-  <!-- 1: COMM 1 — Vans -->
-  <div class="panel" data-section="commercials">
-    <div class="sec-label">Commercials</div>
-    <div class="vid"><iframe src="about:blank" data-src="https://player.vimeo.com/video/1171005604?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
-    <div class="info">
-      <div>
-        <div class="info-cat">Commercials</div>
-        <div class="info-title">Vans — <em>Worn Loud Since 1966</em></div>
-        <div class="info-meta">2025</div>
+      <div class="card" data-yt="Cf1hKtrA9lg">
+        <div class="card-thumb"><img src="https://i.ytimg.com/vi/Cf1hKtrA9lg/maxresdefault.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Commercial · 2024</div></div>
       </div>
-    </div>
-  </div>
 
-  <!-- 2: COMM 2 -->
-  <div class="panel" data-section="commercials">
-    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/gXcLuhXj4LU?autoplay=1&mute=1&loop=1&playlist=gXcLuhXj4LU&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="info">
-      <div>
-        <div class="info-cat">Commercials</div>
-        <div class="info-title"><em>Add Title</em></div>
-        <div class="info-meta">2024</div>
+      <div class="card" data-yt="yD9Xo0V-hPw">
+        <div class="card-thumb"><img src="https://i.ytimg.com/vi/yD9Xo0V-hPw/maxresdefault.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Commercial · 2024</div></div>
       </div>
-    </div>
-  </div>
 
-  <!-- 3: COMM 3 -->
-  <div class="panel" data-section="commercials">
-    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/Cf1hKtrA9lg?autoplay=1&mute=1&loop=1&playlist=Cf1hKtrA9lg&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="info">
-      <div>
-        <div class="info-cat">Commercials</div>
-        <div class="info-title"><em>Add Title</em></div>
-        <div class="info-meta">2024</div>
+      <div class="card" data-yt="RaNRhFH4inM">
+        <div class="card-thumb"><img src="https://i.ytimg.com/vi/RaNRhFH4inM/maxresdefault.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Commercial · 2024</div></div>
       </div>
-    </div>
-  </div>
 
-  <!-- 4: COMM 4 -->
-  <div class="panel" data-section="commercials">
-    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/yD9Xo0V-hPw?autoplay=1&mute=1&loop=1&playlist=yD9Xo0V-hPw&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="info">
-      <div>
-        <div class="info-cat">Commercials</div>
-        <div class="info-title"><em>Add Title</em></div>
-        <div class="info-meta">2024</div>
+      <div class="card" data-yt="oIEKK_j0fss">
+        <div class="card-thumb"><img src="https://i.ytimg.com/vi/oIEKK_j0fss/maxresdefault.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Commercial · 2024</div></div>
       </div>
-    </div>
-  </div>
 
-  <!-- 5: MV 1 — Tate McCrae -->
-  <div class="panel" data-section="music">
-    <div class="sec-label">Music Videos</div>
-    <div class="vid"><iframe src="about:blank" data-src="https://player.vimeo.com/video/1076763984?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
-    <div class="info">
-      <div>
-        <div class="info-cat">Music Videos</div>
-        <div class="info-title">Tate McCrae — <em>Sportscar</em></div>
-        <div class="info-meta">2024</div>
+      <div class="card" data-yt="D7liwdjvhWc">
+        <div class="card-thumb"><img src="https://i.ytimg.com/vi/D7liwdjvhWc/maxresdefault.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Commercial · 2024</div></div>
       </div>
-    </div>
-  </div>
 
-  <!-- 6: MV 2 -->
-  <div class="panel" data-section="music">
-    <div class="vid"><iframe src="about:blank" data-src="https://player.vimeo.com/video/1093132338?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
-    <div class="info">
-      <div>
-        <div class="info-cat">Music Videos</div>
-        <div class="info-title"><em>Add Title</em></div>
-        <div class="info-meta">2024</div>
+      <div class="card" data-yt="BjAaJEdiu68">
+        <div class="card-thumb"><img src="https://i.ytimg.com/vi/BjAaJEdiu68/maxresdefault.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Commercial · 2024</div></div>
       </div>
-    </div>
-  </div>
 
-  <!-- 7: MV 3 -->
-  <div class="panel" data-section="music">
-    <div class="vid"><iframe src="about:blank" data-src="https://player.vimeo.com/video/1007834851?autoplay=1&muted=1&loop=1&background=1" allow="autoplay"></iframe></div>
-    <div class="info">
-      <div>
-        <div class="info-cat">Music Videos</div>
-        <div class="info-title"><em>Add Title</em></div>
-        <div class="info-meta">2024</div>
+    </div>
+    <button class="row-arrow row-arr-right" id="ar-comm" onclick="rowScroll('comm',1)">
+      <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+    </button>
+  </div>
+</section>
+
+<!-- MUSIC VIDEOS -->
+<section class="section" id="music">
+  <div class="section-head">
+    <h2 class="section-title"><em>Music Videos</em></h2>
+    <span class="section-count">08 Projects</span>
+  </div>
+  <div class="h-row-wrap" id="wrap-music">
+    <button class="row-arrow row-arr-left hide" id="al-music" onclick="rowScroll('music',-1)">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="h-row" id="row-music">
+
+      <div class="card featured" data-vimeo="1076763984">
+        <div class="card-thumb"><img src="https://vumbnail.com/1076763984.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title">Tate McCrae — <em>Sportscar</em></div><div class="card-meta">Music Video · 2024</div></div>
       </div>
-    </div>
-  </div>
 
-  <!-- 8: MV 4 — YouTube -->
-  <div class="panel" data-section="music">
-    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/7Lo8WTBuHDg?autoplay=1&mute=1&loop=1&playlist=7Lo8WTBuHDg&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="info">
-      <div>
-        <div class="info-cat">Music Videos</div>
-        <div class="info-title"><em>Add Title</em></div>
-        <div class="info-meta">2024</div>
+      <div class="card" data-vimeo="1093132338">
+        <div class="card-thumb"><img src="https://vumbnail.com/1093132338.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Music Video · 2024</div></div>
       </div>
+
+      <div class="card" data-vimeo="1007834851">
+        <div class="card-thumb"><img src="https://vumbnail.com/1007834851.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Music Video · 2024</div></div>
+      </div>
+
+      <div class="card" data-yt="7Lo8WTBuHDg">
+        <div class="card-thumb"><img src="https://i.ytimg.com/vi/7Lo8WTBuHDg/maxresdefault.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Music Video · 2024</div></div>
+      </div>
+
+      <div class="card" data-yt="PXn1l-R7uPY">
+        <div class="card-thumb"><img src="https://i.ytimg.com/vi/PXn1l-R7uPY/maxresdefault.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Music Video · 2024</div></div>
+      </div>
+
+      <div class="card" data-yt="9ofQZfvhtkU">
+        <div class="card-thumb"><img src="https://i.ytimg.com/vi/9ofQZfvhtkU/maxresdefault.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Music Video · 2024</div></div>
+      </div>
+
+      <div class="card" data-yt="tGqXFHPUO7c">
+        <div class="card-thumb"><img src="https://i.ytimg.com/vi/tGqXFHPUO7c/maxresdefault.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Music Video · 2024</div></div>
+      </div>
+
+      <div class="card" data-yt="Mz0W1VzmH84">
+        <div class="card-thumb"><img src="https://i.ytimg.com/vi/Mz0W1VzmH84/maxresdefault.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Music Video · 2024</div></div>
+      </div>
+
+    </div>
+    <button class="row-arrow row-arr-right" id="ar-music" onclick="rowScroll('music',1)">
+      <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+    </button>
+  </div>
+</section>
+
+<!-- STILLS -->
+<section class="section" id="stills">
+  <div class="section-head">
+    <h2 class="section-title"><em>Stills</em></h2>
+    <span class="section-count">Coming Soon</span>
+  </div>
+  <div class="h-row-wrap">
+    <div class="h-row" id="row-stills">
+      <div class="card placeholder"><span>Coming Soon</span></div>
+      <div class="card placeholder"><span>Coming Soon</span></div>
+      <div class="card placeholder"><span>Coming Soon</span></div>
     </div>
   </div>
+</section>
 
-  <!-- NEW COMMERCIALS -->
-  <div class="panel" data-section="commercials">
-    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/RaNRhFH4inM?autoplay=1&mute=1&loop=1&playlist=RaNRhFH4inM&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="info"><div>
-      <div class="info-cat">Commercials</div>
-      <div class="info-title"><em>Add Title</em></div>
-      <div class="info-meta">2024</div>
-    </div></div>
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-head">
+    <h2 class="section-title"><em>Features</em></h2>
+    <span class="section-count">01 Project</span>
   </div>
+  <div class="h-row-wrap" id="wrap-feat">
+    <div class="h-row" id="row-feat">
 
-  <div class="panel" data-section="commercials">
-    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/oIEKK_j0fss?autoplay=1&mute=1&loop=1&playlist=oIEKK_j0fss&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="info"><div>
-      <div class="info-cat">Commercials</div>
-      <div class="info-title"><em>Add Title</em></div>
-      <div class="info-meta">2024</div>
-    </div></div>
-  </div>
+      <div class="card featured" data-yt="oIEKK_j0fss">
+        <div class="card-thumb"><img src="https://i.ytimg.com/vi/oIEKK_j0fss/maxresdefault.jpg" alt=""></div>
+        <div class="card-iframe"></div>
+        <div class="card-play"><div class="play-circle"></div></div>
+        <div class="card-info"><div class="card-title"><em>Saniwara</em></div><div class="card-meta">Feature · 2024</div></div>
+      </div>
 
-  <div class="panel" data-section="commercials">
-    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/D7liwdjvhWc?autoplay=1&mute=1&loop=1&playlist=D7liwdjvhWc&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="info"><div>
-      <div class="info-cat">Commercials</div>
-      <div class="info-title"><em>Add Title</em></div>
-      <div class="info-meta">2024</div>
-    </div></div>
-  </div>
-
-  <div class="panel" data-section="commercials">
-    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/BjAaJEdiu68?autoplay=1&mute=1&loop=1&playlist=BjAaJEdiu68&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="info"><div>
-      <div class="info-cat">Commercials</div>
-      <div class="info-title"><em>Add Title</em></div>
-      <div class="info-meta">2024</div>
-    </div></div>
-  </div>
-
-  <!-- NEW MUSIC VIDEOS -->
-  <div class="panel" data-section="music">
-    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/PXn1l-R7uPY?autoplay=1&mute=1&loop=1&playlist=PXn1l-R7uPY&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="info"><div>
-      <div class="info-cat">Music Videos</div>
-      <div class="info-title"><em>Add Title</em></div>
-      <div class="info-meta">2024</div>
-    </div></div>
-  </div>
-
-  <div class="panel" data-section="music">
-    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/9ofQZfvhtkU?autoplay=1&mute=1&loop=1&playlist=9ofQZfvhtkU&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="info"><div>
-      <div class="info-cat">Music Videos</div>
-      <div class="info-title"><em>Add Title</em></div>
-      <div class="info-meta">2024</div>
-    </div></div>
-  </div>
-
-  <div class="panel" data-section="music">
-    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/tGqXFHPUO7c?autoplay=1&mute=1&loop=1&playlist=tGqXFHPUO7c&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="info"><div>
-      <div class="info-cat">Music Videos</div>
-      <div class="info-title"><em>Add Title</em></div>
-      <div class="info-meta">2024</div>
-    </div></div>
-  </div>
-
-  <div class="panel" data-section="music">
-    <div class="vid"><iframe src="about:blank" data-src="https://www.youtube-nocookie.com/embed/Mz0W1VzmH84?autoplay=1&mute=1&loop=1&playlist=Mz0W1VzmH84&controls=0&disablekb=1&rel=0" allow="autoplay"></iframe></div>
-    <div class="info"><div>
-      <div class="info-cat">Music Videos</div>
-      <div class="info-title"><em>Add Title</em></div>
-      <div class="info-meta">2024</div>
-    </div></div>
-  </div>
-
-  <!-- 9: STILLS -->
-  <div class="panel placeholder-panel" data-section="stills">
-    <div class="sec-label">Stills</div>
-    <div class="placeholder-inner">
-      <div class="placeholder-title">Stills</div>
-      <div class="placeholder-sub">Coming Soon</div>
     </div>
   </div>
+</section>
 
-  <!-- 10: FEATURES -->
-  <div class="panel placeholder-panel" data-section="features">
-    <div class="sec-label">Features</div>
-    <div class="placeholder-inner">
-      <div class="placeholder-title">Features</div>
-      <div class="placeholder-sub">Coming Soon</div>
-    </div>
-  </div>
-
-  <!-- 11: FOOTER -->
-  <div id="footer-panel" data-section="footer">
+<!-- FOOTER -->
+<footer>
+  <div>
     <div class="footer-name">Eliza<br><em>Padden</em></div>
     <div class="footer-loc">Los Angeles &nbsp;×&nbsp; New York</div>
-    <div class="footer-links">
-      <a href="mailto:eliza@email.com">eliza@email.com</a>
-      <a href="#">IMDb</a>
-      <a href="#">Instagram</a>
-      <a href="#">LinkedIn</a>
-    </div>
-    <div class="footer-copy">© 2026 Eliza Padden — Film &amp; Commercial Production</div>
   </div>
-
-</div><!-- /track -->
+  <div class="footer-links">
+    <a href="mailto:eliza@email.com">eliza@email.com</a>
+    <a href="#">IMDb</a>
+    <a href="#">Instagram</a>
+    <a href="#">LinkedIn</a>
+  </div>
+  <div class="footer-copy">© 2026 Eliza Padden — Film & Commercial Production</div>
+</footer>
 
 <script>
-// ── all panels in order ──
-const track  = document.getElementById('track');
-const panels = Array.from(track.children);
-const TOTAL  = panels.length;
-let cur = 0, busy = false;
+/* ── sound state ── */
+let soundOn = false;
+let activeCard = null;
 
-// ── dots ──
-const dotsEl = document.getElementById('dots');
-panels.forEach((_, i) => {
-  const d = document.createElement('div');
-  d.className = 'dot' + (i === 0 ? ' on' : '');
-  d.addEventListener('click', () => goTo(i));
-  dotsEl.appendChild(d);
-});
-const dots = dotsEl.querySelectorAll('.dot');
+const soundBtn  = document.getElementById('sound-btn');
+const iconMute  = document.getElementById('icon-mute');
+const iconSound = document.getElementById('icon-sound');
 
-// ── section first-index map ──
-const secFirst = {};
-panels.forEach((p, i) => {
-  const s = p.dataset.section;
-  if (s && secFirst[s] === undefined) secFirst[s] = i;
+soundBtn.addEventListener('click', () => {
+  soundOn = !soundOn;
+  soundBtn.classList.toggle('on', soundOn);
+  iconMute.style.display  = soundOn ? 'none'  : '';
+  iconSound.style.display = soundOn ? ''      : 'none';
+  if (activeCard) reloadActive();
 });
 
-// ── iframe src management ──
-function getIframe(panel) {
-  return panel.querySelector('.vid iframe, .hbg.on iframe');
-}
-function activatePanel(panel) {
-  const iframe = panel.querySelector('.vid iframe');
-  if (!iframe) return;
-  const src = iframe.getAttribute('data-src');
-  if (src && iframe.src !== src) iframe.src = src;
-}
-function deactivatePanel(panel) {
-  const iframe = panel.querySelector('.vid iframe');
-  if (!iframe) return;
-  if (iframe.getAttribute('data-src')) iframe.src = 'about:blank';
+function reloadActive() {
+  if (!activeCard) return;
+  const iframeWrap = activeCard.querySelector('.card-iframe');
+  const src = buildSrc(activeCard);
+  iframeWrap.innerHTML = `<iframe src="${src}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
 }
 
-// ── hero bg reel ──
-const hbgs = Array.from(document.querySelectorAll('.hbg'));
-let hCur = 0, heroTimer = null;
-
-function cycleHero() {
-  const next = (hCur + 1) % hbgs.length;
-  const nextIframe = hbgs[next].querySelector('iframe');
-  const src = nextIframe.getAttribute('data-src');
-  if (src && nextIframe.src === 'about:blank') nextIframe.src = src;
-  hbgs[hCur].classList.remove('on');
-  hbgs[next].classList.add('on');
-  hCur = next;
+function buildSrc(card) {
+  const yt    = card.dataset.yt;
+  const vimeo = card.dataset.vimeo;
+  const mute  = soundOn ? 0 : 1;
+  if (yt)    return `https://www.youtube-nocookie.com/embed/${yt}?autoplay=1&mute=${mute}&loop=1&playlist=${yt}&controls=1&rel=0`;
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo}?autoplay=1&muted=${mute}&loop=1`;
+  return '';
 }
-function startHero() { if (!heroTimer) heroTimer = setInterval(cycleHero, 5000); }
-function stopHero()  { clearInterval(heroTimer); heroTimer = null; }
-startHero();
 
-// ── main nav ──
-function updateUI() {
-  // arrows
-  document.getElementById('arr-left').classList.toggle('hide', cur === 0);
-  document.getElementById('arr-right').classList.toggle('hide', cur === TOTAL - 1);
-  // dots
-  dots.forEach((d, i) => d.classList.toggle('on', i === cur));
-  // nav buttons
-  const sec = panels[cur].dataset.section;
-  document.querySelectorAll('.nav-links button').forEach(b => {
-    b.classList.toggle('active', b.textContent.toLowerCase().replace(' ','') === sec ||
-      (sec === 'music' && b.textContent.toLowerCase().includes('music')) ||
-      (sec === 'commercials' && b.textContent.toLowerCase().includes('comm')));
+/* ── card click: play ── */
+document.querySelectorAll('.card:not(.placeholder)').forEach(card => {
+  card.addEventListener('click', () => {
+    if (card === activeCard) return;
+
+    // stop previous
+    if (activeCard) {
+      activeCard.classList.remove('playing');
+      activeCard.querySelector('.card-iframe').innerHTML = '';
+      activeCard = null;
+    }
+
+    // start new
+    const iframeWrap = card.querySelector('.card-iframe');
+    iframeWrap.innerHTML = `<iframe src="${buildSrc(card)}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+    card.classList.add('playing');
+    activeCard = card;
+    soundBtn.style.display = 'flex';
   });
-}
-
-// ── goTo ──
-function goTo(n) {
-  if (busy) return;
-  n = Math.max(0, Math.min(TOTAL - 1, n));
-  if (n === cur) return;
-
-  deactivatePanel(panels[cur]);
-  if (cur === 0) stopHero();
-
-  cur = n;
-  track.style.transform = `translateX(calc(-${cur} * 100vw))`;
-
-  if (cur === 0) {
-    setTimeout(startHero, 400);
-  } else {
-    setTimeout(() => activatePanel(panels[cur]), 220);
-  }
-
-  updateUI();
-  busy = true;
-  setTimeout(() => busy = false, 750);
-}
-
-function next() { goTo(cur + 1); }
-function prev() { goTo(cur - 1); }
-
-function goToSection(name) {
-  const idx = secFirst[name];
-  if (idx !== undefined) goTo(idx);
-}
-
-// ── scroll wheel ──
-let wLock = false;
-window.addEventListener('wheel', e => {
-  if (wLock) return;
-  wLock = true; setTimeout(() => wLock = false, 820);
-  (e.deltaY > 20 || e.deltaX > 20) ? next() : (e.deltaY < -20 || e.deltaX < -20) ? prev() : null;
-}, { passive: true });
-
-// ── touch ──
-let tx = 0;
-window.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
-window.addEventListener('touchend', e => {
-  const dx = e.changedTouches[0].clientX - tx;
-  if (Math.abs(dx) > 50) dx < 0 ? next() : prev();
-}, { passive: true });
-
-// ── keyboard ──
-let kLock = false;
-window.addEventListener('keydown', e => {
-  if (kLock) return;
-  if (['ArrowRight','ArrowDown'].includes(e.key)) { kLock=true; setTimeout(()=>kLock=false,820); next(); }
-  if (['ArrowLeft','ArrowUp'].includes(e.key))    { kLock=true; setTimeout(()=>kLock=false,820); prev(); }
 });
 
-// ── desktop drag ──
-let dStart = null, dMoved = false;
-window.addEventListener('mousedown', e => { dStart = e.clientX; dMoved = false; });
-window.addEventListener('mousemove', e => { if (dStart && Math.abs(e.clientX - dStart) > 8) dMoved = true; });
-window.addEventListener('mouseup', e => {
-  if (!dStart) return;
-  const dx = e.clientX - dStart; dStart = null;
-  if (!dMoved) return;
-  if (dx < -60) next(); else if (dx > 60) prev();
+/* ── row scroll arrows ── */
+const rows = {
+  comm:  document.getElementById('row-comm'),
+  music: document.getElementById('row-music'),
+};
+
+function rowScroll(key, dir) {
+  const row = rows[key];
+  const amount = row.clientWidth * 0.75;
+  row.scrollBy({ left: dir * amount, behavior: 'smooth' });
+}
+
+// Show/hide arrows based on scroll position
+Object.entries(rows).forEach(([key, row]) => {
+  const al = document.getElementById('al-' + key);
+  const ar = document.getElementById('ar-' + key);
+  row.addEventListener('scroll', () => {
+    al.classList.toggle('hide', row.scrollLeft < 20);
+    ar.classList.toggle('hide', row.scrollLeft + row.clientWidth >= row.scrollWidth - 20);
+  }, { passive: true });
 });
 
-updateUI();
+/* ── nav active on scroll ── */
+const nav = document.getElementById('nav');
+const sections = document.querySelectorAll('section[id], footer');
+const navLinks  = document.querySelectorAll('.nav-links a');
+
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('solid', window.scrollY > 80);
+
+  let cur = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 120) cur = s.id || '';
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + cur);
+  });
+}, { passive: true });
 </script>
 </body>
 </html>

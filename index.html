@@ -3,603 +3,598 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Eliza — Film & Commercial Production</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Geist+Mono:wght@300;400&display=swap" rel="stylesheet">
+<title>Eliza</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@200;300;400&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --bg: #0a0a0a;
-    --fg: #e8e4dc;
-    --muted: #5a5650;
-    --accent: #c8a96e;
-    --border: rgba(232, 228, 220, 0.08);
-  }
+:root {
+  --bg: #0c0c0c;
+  --fg: #eeebe5;
+  --muted: rgba(238,235,229,0.42);
+  --border: rgba(238,235,229,0.1);
+}
 
-  html { scroll-behavior: smooth; }
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  overflow: hidden;
+}
 
-  body {
-    background: var(--bg);
-    color: var(--fg);
-    font-family: 'Geist Mono', monospace;
-    font-weight: 300;
-    overflow-x: hidden;
-    cursor: none;
-  }
+/* ═══════════════════════
+   NAV
+═══════════════════════ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0 40px; height: 64px;
+  background: linear-gradient(to bottom, rgba(12,12,12,0.9) 0%, transparent 100%);
+  pointer-events: none;
+}
 
-  /* Custom cursor */
-  .cursor {
-    width: 6px; height: 6px;
-    background: var(--accent);
-    border-radius: 50%;
-    position: fixed;
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate(-50%, -50%);
-    transition: transform 0.1s ease;
-  }
-  .cursor-ring {
-    width: 32px; height: 32px;
-    border: 1px solid rgba(200, 169, 110, 0.4);
-    border-radius: 50%;
-    position: fixed;
-    pointer-events: none;
-    z-index: 9998;
-    transform: translate(-50%, -50%);
-    transition: all 0.15s ease;
-  }
+nav > * { pointer-events: auto; }
 
-  /* Nav */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0;
-    z-index: 100;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 28px 48px;
-    mix-blend-mode: normal;
-  }
-  .nav-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 18px;
-    font-weight: 300;
-    letter-spacing: 0.12em;
-    color: var(--fg);
-    text-decoration: none;
-    opacity: 0;
-    animation: fadeIn 1s ease 0.5s forwards;
-  }
-  .nav-links {
-    display: flex; gap: 36px;
-    opacity: 0;
-    animation: fadeIn 1s ease 0.7s forwards;
-  }
-  .nav-links a {
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    text-decoration: none;
-    transition: color 0.3s;
-  }
-  .nav-links a:hover { color: var(--fg); }
+.nav-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 19px; font-weight: 300; letter-spacing: 0.06em;
+  color: var(--fg); text-decoration: none; cursor: pointer;
+}
+.nav-logo:hover { opacity: 0.7; }
 
-  /* Hero */
-  .hero {
-    min-height: 100vh;
-    display: flex; align-items: flex-end;
-    padding: 0 48px 80px;
-    position: relative;
-    overflow: hidden;
-  }
+.nav-links { display: flex; }
+.nav-links a {
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; cursor: pointer;
+  padding: 8px 14px; transition: color 0.25s; position: relative;
+  border: none; background: none; font-family: 'DM Sans', sans-serif;
+}
+.nav-links a:hover { color: var(--fg); }
+.nav-links a.active { color: var(--fg); }
+.nav-links a.active::after {
+  content: ''; position: absolute; bottom: 2px; left: 14px; right: 14px;
+  height: 1px; background: var(--fg);
+}
 
-  .hero-bg {
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse at 70% 40%, rgba(200,169,110,0.04) 0%, transparent 60%),
-                radial-gradient(ellipse at 20% 80%, rgba(200,169,110,0.03) 0%, transparent 50%);
-  }
+.nav-right {
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; transition: color 0.25s;
+}
+.nav-right:hover { color: var(--fg); }
 
-  /* Film grain overlay */
-  .grain {
-    position: fixed; inset: -200%;
-    width: 400%; height: 400%;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 1000;
-    opacity: 0.35;
-    animation: grain 0.5s steps(2) infinite;
-  }
-  @keyframes grain {
-    0%, 100% { transform: translate(0,0); }
-    10% { transform: translate(-2%,-3%); }
-    30% { transform: translate(3%,2%); }
-    50% { transform: translate(-1%,4%); }
-    70% { transform: translate(4%,-1%); }
-    90% { transform: translate(-3%,1%); }
-  }
+/* ═══════════════════════
+   HORIZONTAL TRACK
+═══════════════════════ */
+.h-track {
+  display: flex;
+  width: max-content;
+  height: 100vh;
+  transition: transform 0.75s cubic-bezier(0.77, 0, 0.18, 1);
+  will-change: transform;
+}
 
-  .hero-content { position: relative; z-index: 2; }
+/* ═══════════════════════
+   PANELS
+═══════════════════════ */
+.panel {
+  position: relative;
+  width: 100vw; height: 100vh;
+  overflow: hidden;
+  flex-shrink: 0;
+}
 
-  .hero-eyebrow {
-    font-size: 10px;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 24px;
-    opacity: 0;
-    animation: slideUp 1s ease 0.2s forwards;
-  }
+/* video layer */
+.panel-video {
+  position: absolute; inset: 0;
+  background: #050505;
+}
 
-  .hero-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(72px, 12vw, 160px);
-    font-weight: 300;
-    line-height: 0.9;
-    letter-spacing: -0.02em;
-    opacity: 0;
-    animation: slideUp 1s ease 0.4s forwards;
-  }
+.panel-video iframe {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw; height: 56.25vw;
+  min-height: 100vh; min-width: 177.78vh;
+  border: none; pointer-events: none;
+  transition: opacity 0.6s ease;
+}
 
-  .hero-title em {
-    font-style: italic;
-    color: var(--accent);
-  }
+/* scrim */
+.panel::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    linear-gradient(to top,  rgba(12,12,12,0.92) 0%, rgba(12,12,12,0.05) 40%, transparent 60%),
+    linear-gradient(to right, rgba(12,12,12,0.4)  0%, transparent 30%),
+    linear-gradient(to bottom, rgba(12,12,12,0.5) 0%, transparent 15%);
+}
 
-  .hero-sub {
-    margin-top: 32px;
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    color: var(--muted);
-    max-width: 320px;
-    line-height: 1.8;
-    opacity: 0;
-    animation: slideUp 1s ease 0.6s forwards;
-  }
+/* info bar */
+.panel-info {
+  position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
+  padding: 36px 40px;
+  display: flex; justify-content: space-between; align-items: flex-end;
+}
 
-  .hero-scroll {
-    position: absolute;
-    right: 48px; bottom: 80px;
-    display: flex; flex-direction: column; align-items: center; gap: 12px;
-    opacity: 0;
-    animation: fadeIn 1s ease 1.2s forwards;
-  }
-  .hero-scroll span {
-    font-size: 9px;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--muted);
-    writing-mode: vertical-rl;
-  }
-  .scroll-line {
-    width: 1px; height: 60px;
-    background: linear-gradient(to bottom, var(--accent), transparent);
-    animation: scrollLine 2s ease-in-out infinite;
-  }
-  @keyframes scrollLine {
-    0%, 100% { transform: scaleY(1); opacity: 1; }
-    50% { transform: scaleY(0.5); opacity: 0.4; }
-  }
+.panel-category {
+  font-size: 9px; letter-spacing: 0.34em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 10px;
+}
 
-  /* Section styles */
-  section {
-    padding: 120px 48px;
-    position: relative;
-  }
+.panel-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(22px, 3.2vw, 46px); font-weight: 300; line-height: 1.15;
+}
+.panel-title em { font-style: italic; }
 
-  .section-label {
-    font-size: 9px;
-    letter-spacing: 0.35em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 64px;
-    display: flex; align-items: center; gap: 16px;
-  }
-  .section-label::after {
-    content: '';
-    flex: 1; max-width: 60px;
-    height: 1px;
-    background: var(--accent);
-    opacity: 0.4;
-  }
+.panel-meta {
+  margin-top: 8px; font-size: 10px;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
+}
 
-  /* Work grid */
-  .work-grid {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap: 2px;
-  }
+/* counter */
+.panel-counter {
+  font-size: 10px; letter-spacing: 0.14em;
+  color: var(--muted); font-variant-numeric: tabular-nums;
+  flex-shrink: 0; margin-left: 20px;
+  align-self: flex-end; padding-bottom: 4px;
+}
 
-  .work-item {
-    position: relative;
-    overflow: hidden;
-    background: #111;
-    cursor: none;
-  }
+/* ═══════════════════════
+   HERO PANEL
+═══════════════════════ */
+#panel-hero .panel-info {
+  align-items: flex-end;
+}
 
-  .work-item:nth-child(1) { grid-column: span 7; aspect-ratio: 16/9; }
-  .work-item:nth-child(2) { grid-column: span 5; aspect-ratio: 16/9; }
-  .work-item:nth-child(3) { grid-column: span 4; aspect-ratio: 9/12; }
-  .work-item:nth-child(4) { grid-column: span 8; aspect-ratio: 16/9; }
-  .work-item:nth-child(5) { grid-column: span 12; aspect-ratio: 21/9; }
+.hero-name {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(96px, 17vw, 210px); font-weight: 300;
+  letter-spacing: -0.03em; line-height: 1;
+  animation: nameFade 1.6s cubic-bezier(0.16,1,0.3,1) 0.1s both;
+  text-shadow: 0 2px 60px rgba(0,0,0,0.4);
+}
+@keyframes nameFade {
+  from { opacity: 0; transform: translateY(18px); letter-spacing: 0.08em; }
+  to   { opacity: 1; transform: translateY(0); letter-spacing: -0.03em; }
+}
 
-  .work-thumb {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.6s ease;
-    filter: grayscale(30%) brightness(0.7);
-  }
+.hero-sub {
+  margin-top: 12px; font-size: 10px;
+  letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted);
+  animation: fadeUp 1s ease 1s both;
+}
 
-  /* Placeholder video thumbnails using CSS */
-  .work-placeholder {
-    width: 100%; height: 100%;
-    background: linear-gradient(135deg, #111 0%, #1a1a1a 50%, #111 100%);
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  }
+.hero-hint {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase;
+  color: var(--muted); animation: fadeUp 1s ease 1.3s both; flex-shrink: 0;
+  padding-bottom: 6px;
+}
+.hint-bar {
+  width: 36px; height: 1px;
+  background: linear-gradient(to right, transparent, var(--muted));
+  animation: hintPulse 2s ease-in-out infinite;
+}
+@keyframes hintPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-  .work-placeholder::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, transparent 30%, rgba(200,169,110,0.03) 100%);
-  }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
-  .play-icon {
-    width: 40px; height: 40px;
-    border: 1px solid rgba(200,169,110,0.3);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.3s ease;
-    position: relative; z-index: 1;
-  }
-  .play-icon::after {
-    content: '';
-    width: 0; height: 0;
-    border-top: 8px solid transparent;
-    border-bottom: 8px solid transparent;
-    border-left: 14px solid rgba(200,169,110,0.5);
-    margin-left: 3px;
-    transition: border-color 0.3s;
-  }
+/* ═══════════════════════
+   FOOTER PANEL
+═══════════════════════ */
+#panel-footer {
+  width: 60vw;
+  min-width: 500px;
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  justify-content: center;
+  padding: 80px 64px;
+}
 
-  .work-item:hover .work-placeholder { transform: scale(1.03); }
-  .work-item:hover .play-icon {
-    border-color: var(--accent);
-    background: rgba(200,169,110,0.1);
-  }
-  .work-item:hover .play-icon::after { border-left-color: var(--accent); }
+#panel-footer::after { display: none; }
 
-  .work-overlay {
-    position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%);
-    display: flex; flex-direction: column; justify-content: flex-end;
-    padding: 24px;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
+.footer-name {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(48px, 7vw, 90px); font-weight: 300;
+  letter-spacing: -0.02em; line-height: 0.95;
+}
+.footer-name em { font-style: italic; }
 
-  .work-item:hover .work-overlay { opacity: 1; }
+.footer-location {
+  margin-top: 16px; font-size: 10px;
+  letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted);
+}
 
-  .work-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 22px;
-    font-weight: 300;
-    letter-spacing: 0.04em;
-    transform: translateY(8px);
-    transition: transform 0.4s ease;
-  }
-  .work-item:hover .work-title { transform: translateY(0); }
+.footer-links {
+  margin-top: 48px; display: flex; flex-direction: column; gap: 12px;
+}
+.footer-links a {
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; transition: color 0.25s;
+  width: fit-content;
+}
+.footer-links a:hover { color: var(--fg); }
 
-  .work-meta {
-    font-size: 9px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-top: 6px;
-    transform: translateY(8px);
-    transition: transform 0.4s ease 0.05s;
-  }
-  .work-item:hover .work-meta { transform: translateY(0); }
+.footer-copy {
+  margin-top: 60px; font-size: 9px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: rgba(238,235,229,0.16);
+}
 
-  /* About */
-  .about-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 120px;
-    align-items: start;
-  }
+/* ═══════════════════════
+   NAV ARROWS (sides)
+═══════════════════════ */
+.nav-arrow {
+  position: fixed; top: 50%; z-index: 150;
+  transform: translateY(-50%);
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(12,12,12,0.5); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: border-color 0.25s, background 0.25s, opacity 0.3s;
+  color: var(--fg);
+}
+.nav-arrow:hover { border-color: rgba(238,235,229,0.4); background: rgba(238,235,229,0.08); }
+.nav-arrow.hidden { opacity: 0; pointer-events: none; }
+.nav-arrow svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 
-  .about-heading {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(40px, 5vw, 68px);
-    font-weight: 300;
-    line-height: 1.1;
-    letter-spacing: -0.01em;
-  }
+#arrow-left  { left: 20px; }
+#arrow-right { right: 20px; }
 
-  .about-heading em { font-style: italic; color: var(--accent); }
+/* Progress dots */
+.progress-dots {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 7px; z-index: 150;
+}
+.pdot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: rgba(238,235,229,0.2); cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+}
+.pdot.active { background: var(--fg); transform: scale(1.4); }
 
-  .about-text {
-    font-size: 12px;
-    line-height: 2.2;
-    color: #9a9590;
-    margin-top: 48px;
-  }
+/* Section label in top-left corner of first video of each section */
+.section-start-label {
+  position: absolute; top: 80px; left: 40px; z-index: 10;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(13px, 1.4vw, 18px); font-weight: 300;
+  letter-spacing: 0.06em; color: rgba(238,235,229,0.35);
+  font-style: italic;
+  pointer-events: none;
+}
 
-  .about-text p + p { margin-top: 20px; }
-
-  .credits-list {
-    margin-top: 48px;
-    border-top: 1px solid var(--border);
-  }
-
-  .credit-item {
-    display: flex; justify-content: space-between; align-items: baseline;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    color: var(--muted);
-    transition: color 0.3s;
-  }
-
-  .credit-item:hover { color: var(--fg); }
-
-  .credit-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 16px;
-    font-weight: 300;
-    color: var(--fg);
-  }
-
-  .credit-role {
-    font-size: 9px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-
-  /* Contact */
-  .contact-section {
-    border-top: 1px solid var(--border);
-    display: flex; justify-content: space-between; align-items: flex-end;
-    flex-wrap: wrap; gap: 48px;
-  }
-
-  .contact-heading {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(48px, 7vw, 96px);
-    font-weight: 300;
-    letter-spacing: -0.02em;
-    line-height: 0.9;
-  }
-
-  .contact-heading em { font-style: italic; color: var(--accent); }
-
-  .contact-info { text-align: right; }
-
-  .contact-link {
-    display: block;
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    color: var(--muted);
-    text-decoration: none;
-    transition: color 0.3s;
-    margin-bottom: 8px;
-  }
-  .contact-link:hover { color: var(--fg); }
-
-  /* Footer */
-  footer {
-    padding: 24px 48px;
-    display: flex; justify-content: space-between; align-items: center;
-    border-top: 1px solid var(--border);
-  }
-
-  footer span {
-    font-size: 9px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  /* Animations */
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* Scroll reveal */
-  .reveal {
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
-  }
-  .reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* Horizontal rule deco */
-  .deco-line {
-    position: absolute;
-    top: 0; left: 48px; right: 48px;
-    height: 1px;
-    background: var(--border);
-  }
+/* ═══════════════════════
+   MOBILE
+═══════════════════════ */
+@media (max-width: 768px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .panel-info { padding: 24px 20px; }
+  #arrow-left  { left: 12px; width: 40px; height: 40px; }
+  #arrow-right { right: 12px; width: 40px; height: 40px; }
+  #panel-footer { width: 100vw; min-width: unset; padding: 60px 32px; }
+  .hero-name { font-size: clamp(80px, 22vw, 160px); }
+}
 </style>
 </head>
 <body>
 
-<div class="grain"></div>
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
-
-<nav>
-  <a href="#" class="nav-name">Eliza P.</a>
-  <div class="nav-links">
-    <a href="#work">Work</a>
-    <a href="#about">About</a>
-    <a href="#contact">Contact</a>
+<!-- NAV -->
+<nav id="mainNav">
+  <a class="nav-logo" onclick="goTo(0)">Eliza</a>
+  <div class="nav-links" id="navLinks">
+    <a onclick="goToSection('commercials')">Commercials</a>
+    <a onclick="goToSection('music')">Music Videos</a>
+    <a onclick="goToSection('stills')">Stills</a>
+    <a onclick="goToSection('features')">Features</a>
   </div>
+  <a href="mailto:eliza@email.com" class="nav-right">Contact</a>
 </nav>
 
-<!-- Hero -->
-<section class="hero" id="home">
-  <div class="hero-bg"></div>
-  <div class="hero-content">
-    <p class="hero-eyebrow">Film &amp; Commercial Production</p>
-    <h1 class="hero-title">
-      Eliza<br><em>Padden</em>
-    </h1>
-    <p class="hero-sub">
-      Production coordinator &amp; behind-the-scenes force on commercials, films, and branded content.
-    </p>
-  </div>
-  <div class="hero-scroll">
-    <div class="scroll-line"></div>
-    <span>Scroll</span>
-  </div>
-</section>
+<!-- SIDE ARROWS -->
+<button class="nav-arrow hidden" id="arrow-left" onclick="prev()">
+  <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+</button>
+<button class="nav-arrow" id="arrow-right" onclick="next()">
+  <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+</button>
 
-<!-- Work -->
-<section id="work">
-  <div class="deco-line"></div>
-  <div class="section-label reveal">Selected Work</div>
+<!-- PROGRESS DOTS (injected by JS) -->
+<div class="progress-dots" id="progressDots"></div>
 
-  <div class="work-grid">
-    <div class="work-item reveal">
-      <div class="work-placeholder"><div class="play-icon"></div></div>
-      <div class="work-overlay">
-        <div class="work-title">Nike — "Just Do It"</div>
-        <div class="work-meta">Commercial · 2024</div>
-      </div>
+<!-- HORIZONTAL TRACK -->
+<div class="h-track" id="hTrack">
+
+  <!-- 0: HERO -->
+  <div class="panel" id="panel-hero" data-section="hero">
+    <div class="panel-video">
+      <iframe id="iframe-0"
+        src="https://player.vimeo.com/video/1076763984?autoplay=1&muted=1&loop=1&background=1"
+        allow="autoplay"></iframe>
     </div>
-    <div class="work-item reveal">
-      <div class="work-placeholder"><div class="play-icon"></div></div>
-      <div class="work-overlay">
-        <div class="work-title">Untitled Feature</div>
-        <div class="work-meta">Film · 2023</div>
+    <div class="panel-info">
+      <div>
+        <h1 class="hero-name">ELIZA</h1>
+        <p class="hero-sub">Los Angeles &nbsp;×&nbsp; New York</p>
       </div>
-    </div>
-    <div class="work-item reveal">
-      <div class="work-placeholder"><div class="play-icon"></div></div>
-      <div class="work-overlay">
-        <div class="work-title">Apple — Shot on iPhone</div>
-        <div class="work-meta">Commercial · 2023</div>
-      </div>
-    </div>
-    <div class="work-item reveal">
-      <div class="work-placeholder"><div class="play-icon"></div></div>
-      <div class="work-overlay">
-        <div class="work-title">Short Film</div>
-        <div class="work-meta">Narrative · 2022</div>
-      </div>
-    </div>
-    <div class="work-item reveal">
-      <div class="work-placeholder"><div class="play-icon"></div></div>
-      <div class="work-overlay">
-        <div class="work-title">Brand Campaign Reel</div>
-        <div class="work-meta">Multi-brand · 2024</div>
+      <div class="hero-hint">
+        <div class="hint-bar"></div>
+        Scroll or swipe
       </div>
     </div>
   </div>
-</section>
 
-<!-- About -->
-<section id="about">
-  <div class="deco-line"></div>
-  <div class="about-grid">
-    <div>
-      <div class="section-label reveal">About</div>
-      <h2 class="about-heading reveal">The work<br>runs <em>through</em><br>her.</h2>
+  <!-- 1: COMM 1 -->
+  <div class="panel" data-section="commercials" data-idx="1">
+    <div class="section-start-label">Commercials</div>
+    <div class="panel-video">
+      <iframe data-src="https://player.vimeo.com/video/1171005604?autoplay=1&muted=1&loop=1&background=1"
+        src="about:blank" allow="autoplay"></iframe>
     </div>
-    <div>
-      <div class="about-text reveal">
-        <p>Eliza has spent her career making sure productions run — on time, on budget, and exactly as envisioned. From commercials to feature films, she operates as the connective tissue between creative vision and on-set reality.</p>
-        <p>Based in [City]. Available for projects worldwide.</p>
-      </div>
-
-      <div class="credits-list reveal">
-        <div class="credit-item">
-          <div>
-            <div class="credit-title">Project Name</div>
-            <div class="credit-role">Production Coordinator</div>
-          </div>
-          <span>2024</span>
-        </div>
-        <div class="credit-item">
-          <div>
-            <div class="credit-title">Project Name</div>
-            <div class="credit-role">Production Coordinator</div>
-          </div>
-          <span>2023</span>
-        </div>
-        <div class="credit-item">
-          <div>
-            <div class="credit-title">Project Name</div>
-            <div class="credit-role">Production Coordinator</div>
-          </div>
-          <span>2022</span>
-        </div>
+    <div class="panel-info">
+      <div>
+        <div class="panel-category">Commercials</div>
+        <div class="panel-title">Vans — <em>Worn Loud Since 1966</em></div>
+        <div class="panel-meta">2025</div>
       </div>
     </div>
   </div>
-</section>
 
-<!-- Contact -->
-<section id="contact" class="contact-section">
-  <div class="deco-line"></div>
-  <h2 class="contact-heading reveal">Let's<br><em>talk.</em></h2>
-  <div class="contact-info reveal">
-    <a href="mailto:eliza@email.com" class="contact-link">eliza@email.com</a>
-    <a href="#" class="contact-link">IMDb</a>
-    <a href="#" class="contact-link">LinkedIn</a>
+  <!-- 2: COMM 2 -->
+  <div class="panel" data-section="commercials" data-idx="2">
+    <div class="panel-video">
+      <iframe data-src="https://www.youtube-nocookie.com/embed/gXcLuhXj4LU?autoplay=1&mute=1&loop=1&playlist=gXcLuhXj4LU&controls=0&disablekb=1&rel=0"
+        src="about:blank" allow="autoplay"></iframe>
+    </div>
+    <div class="panel-info">
+      <div>
+        <div class="panel-category">Commercials</div>
+        <div class="panel-title"><em>Project Title</em></div>
+        <div class="panel-meta">2024</div>
+      </div>
+    </div>
   </div>
-</section>
 
-<footer>
-  <span>© 2026 Eliza Padden</span>
-  <span>Film &amp; Commercial Production</span>
-</footer>
+  <!-- 3: COMM 3 -->
+  <div class="panel" data-section="commercials" data-idx="3">
+    <div class="panel-video">
+      <iframe data-src="https://www.youtube-nocookie.com/embed/Cf1hKtrA9lg?autoplay=1&mute=1&loop=1&playlist=Cf1hKtrA9lg&controls=0&disablekb=1&rel=0"
+        src="about:blank" allow="autoplay"></iframe>
+    </div>
+    <div class="panel-info">
+      <div>
+        <div class="panel-category">Commercials</div>
+        <div class="panel-title"><em>Project Title</em></div>
+        <div class="panel-meta">2024</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4: COMM 4 -->
+  <div class="panel" data-section="commercials" data-idx="4">
+    <div class="panel-video">
+      <iframe data-src="https://www.youtube-nocookie.com/embed/yD9Xo0V-hPw?autoplay=1&mute=1&loop=1&playlist=yD9Xo0V-hPw&controls=0&disablekb=1&rel=0"
+        src="about:blank" allow="autoplay"></iframe>
+    </div>
+    <div class="panel-info">
+      <div>
+        <div class="panel-category">Commercials</div>
+        <div class="panel-title"><em>Project Title</em></div>
+        <div class="panel-meta">2024</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5: MV 1 -->
+  <div class="panel" data-section="music" data-idx="5">
+    <div class="section-start-label">Music Videos</div>
+    <div class="panel-video">
+      <iframe data-src="https://player.vimeo.com/video/1076763984?autoplay=1&muted=1&loop=1&background=1"
+        src="about:blank" allow="autoplay"></iframe>
+    </div>
+    <div class="panel-info">
+      <div>
+        <div class="panel-category">Music Videos</div>
+        <div class="panel-title">Tate McCrae — <em>Sportscar</em></div>
+        <div class="panel-meta">2024</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6: MV 2 -->
+  <div class="panel" data-section="music" data-idx="6">
+    <div class="panel-video">
+      <iframe data-src="https://player.vimeo.com/video/1093132338?autoplay=1&muted=1&loop=1&background=1"
+        src="about:blank" allow="autoplay"></iframe>
+    </div>
+    <div class="panel-info">
+      <div>
+        <div class="panel-category">Music Videos</div>
+        <div class="panel-title"><em>Project Title</em></div>
+        <div class="panel-meta">2024</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7: MV 3 -->
+  <div class="panel" data-section="music" data-idx="7">
+    <div class="panel-video">
+      <iframe data-src="https://player.vimeo.com/video/1007834851?autoplay=1&muted=1&loop=1&background=1"
+        src="about:blank" allow="autoplay"></iframe>
+    </div>
+    <div class="panel-info">
+      <div>
+        <div class="panel-category">Music Videos</div>
+        <div class="panel-title"><em>Project Title</em></div>
+        <div class="panel-meta">2024</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8: STILLS placeholder -->
+  <div class="panel" data-section="stills" data-idx="8"
+    style="background:#0e0e0e; display:flex; align-items:center; justify-content:center;">
+    <div class="section-start-label">Stills</div>
+    <div style="text-align:center; position:relative; z-index:2;">
+      <div style="font-family:'Playfair Display',serif; font-size:clamp(48px,8vw,100px); font-weight:300; font-style:italic; color:rgba(238,235,229,0.12);">Stills</div>
+      <div style="margin-top:16px; font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:rgba(238,235,229,0.2);">Coming Soon</div>
+    </div>
+  </div>
+
+  <!-- 9: FEATURES placeholder -->
+  <div class="panel" data-section="features" data-idx="9"
+    style="background:#0e0e0e; display:flex; align-items:center; justify-content:center;">
+    <div class="section-start-label">Features</div>
+    <div style="text-align:center; position:relative; z-index:2;">
+      <div style="font-family:'Playfair Display',serif; font-size:clamp(48px,8vw,100px); font-weight:300; font-style:italic; color:rgba(238,235,229,0.12);">Features</div>
+      <div style="margin-top:16px; font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:rgba(238,235,229,0.2);">Coming Soon</div>
+    </div>
+  </div>
+
+  <!-- 10: FOOTER -->
+  <div id="panel-footer" data-section="footer">
+    <div class="footer-name">Eliza<br><em>Padden</em></div>
+    <div class="footer-location">Los Angeles &nbsp;×&nbsp; New York</div>
+    <div class="footer-links">
+      <a href="mailto:eliza@email.com">eliza@email.com</a>
+      <a href="#">IMDb</a>
+      <a href="#">Instagram</a>
+      <a href="#">LinkedIn</a>
+    </div>
+    <div class="footer-copy">© 2026 Eliza Padden — Film & Commercial Production</div>
+  </div>
+
+</div><!-- /h-track -->
 
 <script>
-  // Custom cursor
-  const cursor = document.getElementById('cursor');
-  const ring = document.getElementById('cursorRing');
-  let mx = 0, my = 0, rx = 0, ry = 0;
+const track    = document.getElementById('hTrack');
+const panels   = Array.from(track.children);
+const TOTAL    = panels.length;
+let current    = 0;
+let animating  = false;
 
-  document.addEventListener('mousemove', e => {
-    mx = e.clientX; my = e.clientY;
-    cursor.style.left = mx + 'px';
-    cursor.style.top = my + 'px';
+/* ── Build progress dots ── */
+const dotsEl = document.getElementById('progressDots');
+panels.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'pdot' + (i === 0 ? ' active' : '');
+  d.onclick = () => goTo(i);
+  dotsEl.appendChild(d);
+});
+const dots = dotsEl.querySelectorAll('.pdot');
+
+/* ── Section index map ── */
+const sectionFirst = {};
+panels.forEach((p, i) => {
+  const s = p.getAttribute('data-section');
+  if (s && !sectionFirst[s]) sectionFirst[s] = i;
+});
+
+/* ── Navigate ── */
+function goTo(n, force) {
+  if (animating && !force) return;
+  n = Math.max(0, Math.min(TOTAL - 1, n));
+  if (n === current && !force) return;
+
+  // pause current iframe
+  const oldIframe = panels[current].querySelector('iframe');
+  if (oldIframe && oldIframe.getAttribute('data-src')) {
+    oldIframe.src = 'about:blank';
+  }
+
+  current = n;
+  track.style.transform = `translateX(-${current * 100}vw)`;
+
+  // play new iframe (after slight delay for transition)
+  const newPanel = panels[current];
+  const newIframe = newPanel.querySelector('iframe[data-src]');
+  if (newIframe) {
+    setTimeout(() => {
+      newIframe.src = newIframe.getAttribute('data-src');
+    }, 200);
+  }
+
+  // update dots
+  dots.forEach((d, i) => d.classList.toggle('active', i === current));
+
+  // update arrows
+  document.getElementById('arrow-left').classList.toggle('hidden', current === 0);
+  document.getElementById('arrow-right').classList.toggle('hidden', current === TOTAL - 1);
+
+  // update nav active
+  const section = newPanel.getAttribute('data-section');
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    const s = a.getAttribute('onclick').match(/'(\w+)'/);
+    a.classList.toggle('active', s && s[1] === section);
   });
 
-  function animRing() {
-    rx += (mx - rx) * 0.12;
-    ry += (my - ry) * 0.12;
-    ring.style.left = rx + 'px';
-    ring.style.top = ry + 'px';
-    requestAnimationFrame(animRing);
+  animating = true;
+  setTimeout(() => animating = false, 750);
+}
+
+function next() { goTo(current + 1); }
+function prev() { goTo(current - 1); }
+
+function goToSection(name) {
+  if (sectionFirst[name] !== undefined) goTo(sectionFirst[name]);
+}
+
+/* ── Mouse wheel ── */
+let wheelLock = false;
+window.addEventListener('wheel', e => {
+  if (wheelLock) return;
+  wheelLock = true;
+  setTimeout(() => wheelLock = false, 800);
+  if (e.deltaY > 30 || e.deltaX > 30)       next();
+  else if (e.deltaY < -30 || e.deltaX < -30) prev();
+}, { passive: true });
+
+/* ── Touch swipe ── */
+let tx = 0, ty = 0;
+window.addEventListener('touchstart', e => {
+  tx = e.touches[0].clientX;
+  ty = e.touches[0].clientY;
+}, { passive: true });
+
+window.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  const dy = e.changedTouches[0].clientY - ty;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+    dx < 0 ? next() : prev();
   }
-  animRing();
+}, { passive: true });
 
-  // Scroll reveal
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach((e, i) => {
-      if (e.isIntersecting) {
-        setTimeout(() => e.target.classList.add('visible'), i * 80);
-      }
-    });
-  }, { threshold: 0.1 });
+/* ── Keyboard ── */
+let keyLock = false;
+window.addEventListener('keydown', e => {
+  if (keyLock) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    keyLock = true; setTimeout(() => keyLock = false, 800);
+    next();
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    keyLock = true; setTimeout(() => keyLock = false, 800);
+    prev();
+  }
+});
 
-  reveals.forEach(el => observer.observe(el));
+/* ── Desktop drag ── */
+let dragStart = null, dragged = false;
+window.addEventListener('mousedown', e => { dragStart = e.clientX; dragged = false; });
+window.addEventListener('mousemove', e => {
+  if (dragStart !== null && Math.abs(e.clientX - dragStart) > 8) dragged = true;
+});
+window.addEventListener('mouseup', e => {
+  if (dragStart === null) return;
+  const dx = e.clientX - dragStart;
+  dragStart = null;
+  if (!dragged) return;
+  if (dx < -60) next();
+  else if (dx > 60) prev();
+});
 </script>
 </body>
 </html>

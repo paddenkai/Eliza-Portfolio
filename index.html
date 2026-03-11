@@ -4,393 +4,331 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Eliza Padden</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@200;300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@200;300;400;500&family=Playfair+Display:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #0c0c0c;
-  --fg: #eeebe5;
-  --muted: rgba(238,235,229,0.4);
-  --border: rgba(238,235,229,0.09);
-  --card-h: 52vh;
-  --card-w: calc(var(--card-h) * 16 / 9);
-  --gap: 3px;
-  --pad: 40px;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0c0c;--fg:#eeebe5;--muted:rgba(238,235,229,0.4);
+  --border:rgba(238,235,229,0.08);--pad:32px;--gap:12px;
+  --card-radius:2px;
 }
-html { scroll-behavior: smooth; }
-body {
-  background: var(--bg); color: var(--fg);
-  font-family: 'DM Sans', sans-serif; font-weight: 300;
-  overflow-x: hidden; overflow-y: auto;
-  cursor: default;
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:'DM Sans',sans-serif;font-weight:300;overflow-x:hidden}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:0 var(--pad);height:56px;
+  transition:background .3s,border-color .3s;
+  border-bottom:1px solid transparent;
+}
+nav.solid{background:rgba(12,12,12,.97);border-color:var(--border)}
+.nav-logo{
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:400;
+  letter-spacing:.12em;color:var(--fg);text-decoration:none;transition:opacity .2s
+}
+.nav-logo:hover{opacity:.5}
+.nav-links{display:flex}
+.nav-links a{
+  font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--muted);text-decoration:none;padding:5px 12px;
+  transition:color .2s;position:relative
+}
+.nav-links a:hover{color:var(--fg)}
+.nav-contact-btn{
+  font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--muted);background:none;border:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-weight:300;transition:color .2s
+}
+.nav-contact-btn:hover{color:var(--fg)}
+
+/* ── HERO ── */
+#hero{
+  width:100%;height:100vh;background:#0c0c0c;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;
+}
+#hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--border)}
+.hero-name-wrap{overflow:hidden;display:inline-block}
+.hero-name{
+  font-family:'DM Sans',sans-serif;font-weight:200;
+  font-size:clamp(52px,9vw,120px);
+  letter-spacing:.18em;text-transform:lowercase;
+  text-align:center;line-height:1;display:block;
+  animation:nameSlide 1.2s cubic-bezier(.16,1,.3,1) .3s both
+}
+@keyframes nameSlide{
+  from{transform:translateX(-100%);opacity:0}
+  to{transform:translateX(0);opacity:1}
+}
+.hero-sub{
+  margin-top:20px;font-size:10px;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--muted);text-align:center;
+  opacity:0;animation:fadeUp 1s cubic-bezier(.16,1,.3,1) 1s forwards
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.hero-scroll{
+  position:absolute;bottom:36px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  opacity:0;animation:fadeUp 1s ease 1.6s forwards
+}
+.hero-scroll span{font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}
+.scroll-line{width:1px;height:36px;background:linear-gradient(to bottom,var(--muted),transparent);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ── SECTION ── */
+.section{padding:72px 0 56px;border-top:1px solid var(--border)}
+.section-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:0 var(--pad) 28px
+}
+.section-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(24px,3vw,42px);font-weight:300;font-style:italic;letter-spacing:-.01em
+}
+.section-count{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+
+/* ── UNIFORM GRID ── */
+.grid{
+  padding:0 var(--pad);
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:var(--gap);
 }
 
-/* ═══ NAV ═══ */
-nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 0 var(--pad); height: 60px;
-  transition: background 0.4s, border-color 0.4s;
-  border-bottom: 1px solid transparent;
+/* ── CARD ── */
+.card{
+  position:relative;
+  border-radius:var(--card-radius);
+  overflow:visible; /* allow lift to show outside bounds */
+  cursor:pointer;
+  /* perspective for 3D lift */
+  perspective:800px;
 }
-nav.solid { background: rgba(12,12,12,0.97); border-color: var(--border); }
-.nav-logo {
-  font-family: 'Playfair Display', serif;
-  font-size: 18px; font-weight: 300; letter-spacing: 0.05em;
-  color: var(--fg); cursor: pointer; text-decoration: none;
-  transition: opacity 0.2s;
-}
-.nav-logo:hover { opacity: 0.55; }
-.nav-links { display: flex; align-items: center; }
-.nav-links a {
-  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--muted); text-decoration: none; cursor: pointer;
-  padding: 6px 14px; transition: color 0.2s; position: relative;
-  background: none; border: none; font-family: 'DM Sans', sans-serif;
-}
-.nav-links a:hover, .nav-links a.active { color: var(--fg); }
-.nav-links a.active::after {
-  content: ''; position: absolute; bottom: 0; left: 14px; right: 14px;
-  height: 1px; background: var(--fg);
-}
-.nav-right { display: flex; align-items: center; gap: 14px; }
-.nav-contact {
-  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--muted); text-decoration: none; transition: color 0.2s;
-}
-.nav-contact:hover { color: var(--fg); }
+.card::after{content:'';display:block;padding-bottom:56.25%}
 
-/* sound btn */
-#sound-btn {
-  width: 34px; height: 34px; border-radius: 50%;
-  border: 1px solid var(--border); background: transparent;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: border-color 0.2s, background 0.2s;
-  flex-shrink: 0; color: var(--muted);
+.card-inner{
+  position:absolute;inset:0;
+  border-radius:var(--card-radius);
+  overflow:hidden;
+  background:#111;
+  /* greyed out by default */
+  filter:grayscale(60%) brightness(.55);
+  transform:translateZ(0) scale(1);
+  transition:
+    filter .4s ease,
+    transform .4s cubic-bezier(.2,.8,.2,1),
+    box-shadow .4s ease;
 }
-#sound-btn:hover { border-color: rgba(238,235,229,0.3); color: var(--fg); }
-#sound-btn.on { color: var(--fg); border-color: rgba(238,235,229,0.3); }
-#sound-btn svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-
-/* ═══ HERO ═══ */
-#hero {
-  position: relative; width: 100%; height: 100vh; overflow: hidden;
+.card:hover .card-inner{
+  filter:grayscale(0%) brightness(1);
+  transform:translateZ(0) scale(1.13) translateY(-14px);
+  box-shadow:0 40px 80px rgba(0,0,0,.8),0 12px 28px rgba(0,0,0,.5);
+  z-index:10;
 }
 
-/* collage of youtube thumbnails */
-#collage {
-  position: absolute; inset: 0;
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: var(--gap);
+/* thumbnail */
+.c-thumb{position:absolute;inset:0;z-index:1;overflow:hidden}
+.c-thumb img{
+  width:100%;height:100%;object-fit:cover;
+  transform:scale(1);
+  transition:transform .6s cubic-bezier(.25,.46,.45,.94)
 }
-.c-cell {
-  overflow: hidden; background: #111;
-}
-.c-cell img {
-  width: 100%; height: 100%; object-fit: cover;
-  filter: grayscale(25%) brightness(0.5);
-  transform: scale(1.06);
-  transition: filter 6s ease;
-}
-.c-cell:nth-child(odd)  img { animation: panA 20s ease-in-out infinite alternate; }
-.c-cell:nth-child(even) img { animation: panB 24s ease-in-out infinite alternate; }
-@keyframes panA { to { transform: scale(1.06) translate(-2%, -1%); } }
-@keyframes panB { to { transform: scale(1.06) translate(1.5%, 2%); } }
+.card:hover .c-thumb img{transform:scale(1.04)}
 
-#collage-scrim {
-  position: absolute; inset: 0; z-index: 1;
-  background: rgba(12,12,12,0.55);
+/* vimeo hover preview */
+.c-preview{
+  position:absolute;inset:0;z-index:2;
+  opacity:0;transition:opacity .5s ease;
+  pointer-events:none;overflow:hidden
 }
-/* extra bottom fade so text is legible */
-#collage-scrim::after {
-  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 55%;
-  background: linear-gradient(to top, rgba(12,12,12,0.95) 0%, transparent 100%);
+.c-preview iframe{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:100%;height:100%;
+  border:none;pointer-events:none
 }
+.card:hover .c-preview{opacity:1}
 
-#hero-text {
-  position: absolute; inset: 0; z-index: 2;
-  display: flex; flex-direction: column;
-  justify-content: flex-end; padding: 52px var(--pad);
+/* gradient */
+.c-grad{
+  position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:linear-gradient(to top,rgba(12,12,12,.85) 0%,transparent 55%);
+  opacity:0;transition:opacity .4s ease
 }
-.hero-name {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(60px, 9.5vw, 130px); font-weight: 300;
-  letter-spacing: -0.03em; line-height: 1;
-  text-shadow: 0 2px 40px rgba(0,0,0,0.4);
-  animation: nameIn 1.5s cubic-bezier(0.16,1,0.3,1) 0.1s both;
+.card:hover .c-grad{opacity:1}
+
+/* info */
+.c-info{
+  position:absolute;bottom:0;left:0;right:0;z-index:4;
+  padding:14px 16px;pointer-events:none;
+  opacity:0;transform:translateY(4px);
+  transition:opacity .35s ease,transform .35s ease
 }
-.hero-name em { font-style: italic; display: block; }
-@keyframes nameIn {
-  from { opacity:0; transform:translateY(14px); letter-spacing:0.04em; }
-  to   { opacity:1; transform:translateY(0);    letter-spacing:-0.03em; }
+.card:hover .c-info{opacity:1;transform:translateY(0)}
+.c-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(11px,1.1vw,15px);font-weight:300;font-style:italic;line-height:1.25
 }
-.hero-meta {
-  margin-top: 14px; font-size: 10px; letter-spacing: 0.3em;
-  text-transform: uppercase; color: var(--muted);
-  animation: fadeUp 1s ease 0.9s both;
+.c-meta{margin-top:3px;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+
+/* arrow */
+.c-arrow{
+  position:absolute;top:12px;right:12px;z-index:4;
+  width:28px;height:28px;border-radius:50%;
+  border:1px solid rgba(238,235,229,.25);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .3s;
+  background:rgba(12,12,12,.35);backdrop-filter:blur(4px)
 }
-.hero-scroll {
-  position: absolute; right: var(--pad); bottom: 52px; z-index: 2;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  animation: fadeUp 1s ease 1.3s both;
+.card:hover .c-arrow{opacity:1}
+.c-arrow svg{width:10px;height:10px;fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* placeholder */
+.card.ph{cursor:default}
+.card.ph .card-inner{filter:none}
+.card.ph .card-inner::after{
+  content:'Coming Soon';position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;letter-spacing:.3em;text-transform:uppercase;
+  color:rgba(238,235,229,.1);border:1px dashed rgba(238,235,229,.05)
 }
-.hero-scroll span {
-  font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase;
-  color: var(--muted); writing-mode: vertical-rl;
-}
-.scroll-bar {
-  width: 1px; height: 40px;
-  background: linear-gradient(to bottom, var(--muted), transparent);
-  animation: pulse 2s ease-in-out infinite;
-}
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(8px); }
-  to   { opacity:1; transform:translateY(0); }
+.card.ph:hover .card-inner{
+  filter:none;transform:none;box-shadow:none
 }
 
-/* ═══ SECTIONS ═══ */
-.section {
-  padding: 72px 0 60px;
-  border-top: 1px solid var(--border);
+/* ── LIGHTBOX ── */
+#lightbox{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(12,12,12,0);
+  display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;
+  transition:opacity .35s ease,background .35s ease
 }
-.section-head {
-  display: flex; justify-content: space-between; align-items: baseline;
-  padding: 0 var(--pad) 24px;
+#lightbox.open{opacity:1;pointer-events:auto;background:rgba(12,12,12,.97)}
+#lb-nav{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:0 var(--pad);height:56px;flex-shrink:0;
+  border-bottom:1px solid var(--border)
 }
-.section-title {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(28px, 4vw, 48px); font-weight: 300;
-  letter-spacing: -0.01em;
+#lb-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(13px,1.5vw,18px);font-weight:300;font-style:italic
 }
-.section-title em { font-style: italic; }
-.section-count {
-  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
+#lb-meta{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+#lb-close{
+  width:34px;height:34px;border-radius:50%;
+  border:1px solid var(--border);background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:border-color .2s,background .2s
+}
+#lb-close:hover{border-color:rgba(238,235,229,.3);background:rgba(238,235,229,.06)}
+#lb-close svg{width:11px;height:11px;fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#lb-body{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:var(--pad);position:relative
+}
+#lb-video{
+  width:100%;max-width:1100px;
+  aspect-ratio:16/9;background:#000;position:relative
+}
+#lb-video iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+#lb-prev,#lb-next{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:42px;height:42px;border-radius:50%;
+  border:1px solid var(--border);background:rgba(12,12,12,.6);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:border-color .2s,background .2s
+}
+#lb-prev{left:var(--pad)}#lb-next{right:var(--pad)}
+#lb-prev:hover,#lb-next:hover{border-color:rgba(238,235,229,.3);background:rgba(238,235,229,.06)}
+#lb-prev svg,#lb-next svg{width:13px;height:13px;fill:none;stroke:var(--fg);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.lb-hide{opacity:0!important;pointer-events:none!important}
+
+/* ── CONTACT OVERLAY ── */
+#contact-overlay{
+  position:fixed;inset:0;z-index:600;
+  background:rgba(12,12,12,0);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .35s ease,background .35s ease
+}
+#contact-overlay.open{opacity:1;pointer-events:auto;background:rgba(12,12,12,.97)}
+.contact-box{text-align:center}
+.contact-name{
+  font-family:'DM Sans',sans-serif;font-weight:200;
+  font-size:clamp(32px,5vw,64px);letter-spacing:.14em;text-transform:lowercase;margin-bottom:32px
+}
+.contact-email{
+  display:block;font-size:13px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--fg);text-decoration:none;border-bottom:1px solid var(--border);
+  padding-bottom:8px;transition:border-color .25s
+}
+.contact-email:hover{border-color:rgba(238,235,229,.4)}
+.contact-loc{margin-top:20px;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}
+.contact-close{
+  position:absolute;top:var(--pad);right:var(--pad);
+  width:34px;height:34px;border-radius:50%;
+  border:1px solid var(--border);background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:border-color .2s,background .2s
+}
+.contact-close:hover{border-color:rgba(238,235,229,.3);background:rgba(238,235,229,.06)}
+.contact-close svg{width:11px;height:11px;fill:none;stroke:var(--fg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── FOOTER ── */
+footer{
+  padding:64px var(--pad) 40px;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:32px
+}
+.f-name{
+  font-family:'DM Sans',sans-serif;font-weight:200;
+  font-size:clamp(36px,5vw,68px);letter-spacing:.12em;line-height:1;text-transform:lowercase
+}
+.f-loc{margin-top:12px;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}
+.f-contact-btn{
+  font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--muted);background:none;border:1px solid var(--border);
+  padding:12px 24px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:300;
+  transition:color .2s,border-color .2s
+}
+.f-contact-btn:hover{color:var(--fg);border-color:rgba(238,235,229,.3)}
+.f-copy{
+  width:100%;padding-top:22px;border-top:1px solid var(--border);
+  font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(238,235,229,.12)
 }
 
-/* horizontal scroll row */
-.h-row-wrap {
-  position: relative;
+@media(max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:800px){
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .nav-links{display:none}
 }
-.h-row {
-  display: flex; gap: var(--gap);
-  overflow-x: auto; overflow-y: hidden;
-  padding: 0 var(--pad);
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-.h-row::-webkit-scrollbar { display: none; }
-
-/* video card */
-.card {
-  flex-shrink: 0;
-  width: var(--card-w);
-  height: var(--card-h);
-  position: relative; overflow: hidden;
-  background: #0e0e0e; cursor: pointer;
-}
-
-/* wider first card in each row */
-.card.featured {
-  width: calc(var(--card-w) * 1.5);
-}
-
-.card-thumb {
-  width: 100%; height: 100%;
-  position: relative; overflow: hidden;
-}
-.card-thumb img {
-  width: 100%; height: 100%; object-fit: cover;
-  filter: grayscale(15%) brightness(0.72);
-  transform: scale(1.03);
-  transition: transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94),
-              filter 0.5s ease;
-}
-.card:hover .card-thumb img {
-  transform: scale(1.07);
-  filter: grayscale(0%) brightness(0.82);
-}
-
-/* iframe overlay — loads on click */
-.card-iframe {
-  position: absolute; inset: 0; z-index: 2;
-  opacity: 0; transition: opacity 0.5s ease;
-  pointer-events: none;
-}
-.card-iframe iframe {
-  position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  width: 100%; height: 56.25%;
-  min-height: 100%; min-width: 177.78%;
-  border: none;
-}
-.card.playing .card-iframe { opacity: 1; pointer-events: auto; }
-.card.playing .card-iframe iframe { pointer-events: auto; }
-
-/* play button */
-.card-play {
-  position: absolute; inset: 0; z-index: 3;
-  display: flex; align-items: center; justify-content: center;
-  transition: opacity 0.3s;
-}
-.card.playing .card-play { opacity: 0; pointer-events: none; }
-.play-circle {
-  width: 48px; height: 48px; border-radius: 50%;
-  border: 1px solid rgba(238,235,229,0.35);
-  background: rgba(12,12,12,0.4);
-  display: flex; align-items: center; justify-content: center;
-  transition: border-color 0.25s, background 0.25s, transform 0.25s;
-}
-.card:hover .play-circle {
-  border-color: rgba(238,235,229,0.7);
-  background: rgba(238,235,229,0.1);
-  transform: scale(1.1);
-}
-.play-circle::after {
-  content: ''; width:0; height:0;
-  border-top: 7px solid transparent;
-  border-bottom: 7px solid transparent;
-  border-left: 13px solid var(--fg);
-  margin-left: 3px;
-}
-
-/* info overlay */
-.card-info {
-  position: absolute; bottom: 0; left: 0; right: 0; z-index: 4;
-  padding: 18px 20px;
-  background: linear-gradient(to top, rgba(12,12,12,0.9) 0%, transparent 100%);
-  opacity: 0; transform: translateY(4px);
-  transition: opacity 0.35s ease, transform 0.35s ease;
-  pointer-events: none;
-}
-.card:hover .card-info, .card.playing .card-info {
-  opacity: 1; transform: translateY(0);
-}
-.card-title {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(14px, 1.4vw, 20px); font-weight: 300; line-height: 1.2;
-}
-.card-title em { font-style: italic; }
-.card-meta {
-  margin-top: 4px; font-size: 9px; letter-spacing: 0.18em;
-  text-transform: uppercase; color: var(--muted);
-}
-
-/* row scroll arrows */
-.row-arrow {
-  position: absolute; top: 50%; transform: translateY(-50%); z-index: 10;
-  width: 40px; height: 40px; border-radius: 50%;
-  border: 1px solid var(--border); background: rgba(12,12,12,0.7);
-  backdrop-filter: blur(6px);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: border-color 0.2s, background 0.2s, opacity 0.3s;
-  opacity: 0;
-}
-.h-row-wrap:hover .row-arrow { opacity: 1; }
-.row-arrow:hover { border-color: rgba(238,235,229,0.4); background: rgba(238,235,229,0.08); }
-.row-arrow.hide { opacity: 0 !important; pointer-events: none; }
-.row-arrow svg { width: 14px; height: 14px; fill: none; stroke: var(--fg); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.row-arr-left  { left: 8px; }
-.row-arr-right { right: 8px; }
-
-/* placeholder cards */
-.card.placeholder {
-  border: 1px dashed rgba(238,235,229,0.08);
-  background: #0e0e0e;
-  display: flex; align-items: center; justify-content: center;
-  cursor: default;
-}
-.card.placeholder span {
-  font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase;
-  color: rgba(238,235,229,0.14);
-}
-
-/* ═══ FOOTER ═══ */
-footer {
-  padding: 80px var(--pad) 48px;
-  border-top: 1px solid var(--border);
-  display: flex; justify-content: space-between; align-items: flex-end;
-  flex-wrap: wrap; gap: 40px;
-}
-.footer-name {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(40px, 6vw, 80px); font-weight: 300;
-  letter-spacing: -0.02em; line-height: 0.95;
-}
-.footer-name em { font-style: italic; }
-.footer-loc {
-  margin-top: 14px; font-size: 10px; letter-spacing: 0.28em;
-  text-transform: uppercase; color: var(--muted);
-}
-.footer-links { display: flex; flex-direction: column; gap: 10px; text-align: right; }
-.footer-links a {
-  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--muted); text-decoration: none; transition: color 0.2s;
-}
-.footer-links a:hover { color: var(--fg); }
-.footer-copy {
-  width: 100%; padding-top: 28px; border-top: 1px solid var(--border);
-  font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
-  color: rgba(238,235,229,0.15);
-}
-
-/* ═══ MOBILE ═══ */
-@media (max-width: 768px) {
-  :root { --card-h: 38vw; --pad: 20px; }
-  .hero-name { font-size: clamp(52px, 14vw, 90px); }
-  .nav-links a { padding: 6px 9px; font-size: 9px; }
-  .footer-links { text-align: left; }
-  .card.featured { width: var(--card-w); }
+@media(max-width:500px){
+  :root{--pad:16px;--gap:8px}
+  .grid{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav id="nav">
-  <a class="nav-logo" href="#hero">Eliza Padden</a>
+  <a class="nav-logo" href="#hero">eliza padden</a>
   <div class="nav-links">
     <a href="#commercials">Commercials</a>
     <a href="#music">Music Videos</a>
     <a href="#stills">Stills</a>
     <a href="#features">Features</a>
   </div>
-  <a class="nav-contact" href="#" onclick="window.location='mailto:eliza@email.com';return false;">Contact</a>
+  <button class="nav-contact-btn" onclick="openContact()">Contact</button>
 </nav>
 
 <!-- HERO -->
 <section id="hero">
-  <div id="collage">
-    <!-- 18 thumbnail cells — YouTube thumbnails load fast and look great -->
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/gXcLuhXj4LU/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/Cf1hKtrA9lg/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/7Lo8WTBuHDg/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/yD9Xo0V-hPw/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/RaNRhFH4inM/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/oIEKK_j0fss/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/D7liwdjvhWc/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/BjAaJEdiu68/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/PXn1l-R7uPY/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/9ofQZfvhtkU/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/tGqXFHPUO7c/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/Mz0W1VzmH84/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/gXcLuhXj4LU/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/7Lo8WTBuHDg/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/RaNRhFH4inM/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/yD9Xo0V-hPw/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/D7liwdjvhWc/maxresdefault.jpg" loading="lazy" alt=""></div>
-    <div class="c-cell"><img src="https://i.ytimg.com/vi/PXn1l-R7uPY/maxresdefault.jpg" loading="lazy" alt=""></div>
-  </div>
-  <div id="collage-scrim"></div>
-  <div id="hero-text">
-    <h1 class="hero-name">Eliza<em>Padden</em></h1>
-    <p class="hero-meta">Film &amp; Commercial Production &nbsp;·&nbsp; Los Angeles × New York</p>
-  </div>
+  <div class="hero-name-wrap"><h1 class="hero-name">eliza padden</h1></div>
+  <p class="hero-sub">Production &nbsp;·&nbsp; Los Angeles × New York</p>
   <div class="hero-scroll">
-    <div class="scroll-bar"></div>
+    <div class="scroll-line"></div>
     <span>Scroll</span>
   </div>
 </section>
@@ -398,260 +336,344 @@ footer {
 <!-- COMMERCIALS -->
 <section class="section" id="commercials">
   <div class="section-head">
-    <h2 class="section-title"><em>Commercials</em></h2>
+    <h2 class="section-title">Commercials</h2>
     <span class="section-count">08 Projects</span>
   </div>
-  <div class="h-row-wrap" id="wrap-comm">
-    <button class="row-arrow row-arr-left hide" id="al-comm" onclick="rowScroll('comm',-1)">
-      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
-    <div class="h-row" id="row-comm">
+  <div class="grid">
 
-      <div class="card featured" data-yt="gXcLuhXj4LU">
-        <div class="card-thumb"><img src="https://i.ytimg.com/vi/gXcLuhXj4LU/maxresdefault.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Commercial · 2024</div></div>
+    <div class="card" data-yt="gXcLuhXj4LU" data-title="Add Title" data-meta="Commercial · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://i.ytimg.com/vi/gXcLuhXj4LU/maxresdefault.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Add Title</div><div class="c-meta">Commercial · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
       </div>
-
-      <div class="card" data-vimeo="1171005604">
-        <div class="card-thumb"><img src="https://vumbnail.com/1171005604.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title">Vans — <em>Worn Loud Since 1966</em></div><div class="card-meta">Commercial · 2025</div></div>
-      </div>
-
-      <div class="card" data-yt="Cf1hKtrA9lg">
-        <div class="card-thumb"><img src="https://i.ytimg.com/vi/Cf1hKtrA9lg/maxresdefault.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Commercial · 2024</div></div>
-      </div>
-
-      <div class="card" data-yt="yD9Xo0V-hPw">
-        <div class="card-thumb"><img src="https://i.ytimg.com/vi/yD9Xo0V-hPw/maxresdefault.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Commercial · 2024</div></div>
-      </div>
-
-      <div class="card" data-yt="RaNRhFH4inM">
-        <div class="card-thumb"><img src="https://i.ytimg.com/vi/RaNRhFH4inM/maxresdefault.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Commercial · 2024</div></div>
-      </div>
-
-      <div class="card" data-yt="oIEKK_j0fss">
-        <div class="card-thumb"><img src="https://i.ytimg.com/vi/oIEKK_j0fss/maxresdefault.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Commercial · 2024</div></div>
-      </div>
-
-      <div class="card" data-yt="D7liwdjvhWc">
-        <div class="card-thumb"><img src="https://i.ytimg.com/vi/D7liwdjvhWc/maxresdefault.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Commercial · 2024</div></div>
-      </div>
-
-      <div class="card" data-yt="BjAaJEdiu68">
-        <div class="card-thumb"><img src="https://i.ytimg.com/vi/BjAaJEdiu68/maxresdefault.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Commercial · 2024</div></div>
-      </div>
-
     </div>
-    <button class="row-arrow row-arr-right" id="ar-comm" onclick="rowScroll('comm',1)">
-      <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
-    </button>
+
+    <div class="card" data-vimeo="1171005604" data-title="Vans — Worn Loud Since 1966" data-meta="Commercial · 2025">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://vumbnail.com/1171005604.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Vans — Worn Loud Since 1966</div><div class="c-meta">Commercial · 2025</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      </div>
+    </div>
+
+    <div class="card" data-yt="Cf1hKtrA9lg" data-title="Add Title" data-meta="Commercial · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://i.ytimg.com/vi/Cf1hKtrA9lg/maxresdefault.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Add Title</div><div class="c-meta">Commercial · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      </div>
+    </div>
+
+    <div class="card" data-yt="yD9Xo0V-hPw" data-title="Add Title" data-meta="Commercial · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://i.ytimg.com/vi/yD9Xo0V-hPw/maxresdefault.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Add Title</div><div class="c-meta">Commercial · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      </div>
+    </div>
+
+    <div class="card" data-yt="RaNRhFH4inM" data-title="Add Title" data-meta="Commercial · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://i.ytimg.com/vi/RaNRhFH4inM/maxresdefault.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Add Title</div><div class="c-meta">Commercial · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      </div>
+    </div>
+
+    <div class="card" data-yt="D7liwdjvhWc" data-title="Add Title" data-meta="Commercial · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://i.ytimg.com/vi/D7liwdjvhWc/maxresdefault.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Add Title</div><div class="c-meta">Commercial · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      </div>
+    </div>
+
+    <div class="card" data-yt="BjAaJEdiu68" data-title="Add Title" data-meta="Commercial · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://i.ytimg.com/vi/BjAaJEdiu68/maxresdefault.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Add Title</div><div class="c-meta">Commercial · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      </div>
+    </div>
+
+    <div class="card" data-yt="oIEKK_j0fss" data-title="Add Title" data-meta="Commercial · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://i.ytimg.com/vi/oIEKK_j0fss/maxresdefault.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Add Title</div><div class="c-meta">Commercial · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      </div>
+    </div>
+
   </div>
 </section>
 
 <!-- MUSIC VIDEOS -->
 <section class="section" id="music">
   <div class="section-head">
-    <h2 class="section-title"><em>Music Videos</em></h2>
+    <h2 class="section-title">Music Videos</h2>
     <span class="section-count">08 Projects</span>
   </div>
-  <div class="h-row-wrap" id="wrap-music">
-    <button class="row-arrow row-arr-left hide" id="al-music" onclick="rowScroll('music',-1)">
-      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
-    <div class="h-row" id="row-music">
+  <div class="grid">
 
-      <div class="card featured" data-vimeo="1076763984">
-        <div class="card-thumb"><img src="https://vumbnail.com/1076763984.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title">Tate McCrae — <em>Sportscar</em></div><div class="card-meta">Music Video · 2024</div></div>
+    <div class="card" data-vimeo="1076763984" data-title="Tate McCrae — Sportscar" data-meta="Music Video · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://vumbnail.com/1076763984.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Tate McCrae — Sportscar</div><div class="c-meta">Music Video · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
       </div>
-
-      <div class="card" data-vimeo="1093132338">
-        <div class="card-thumb"><img src="https://vumbnail.com/1093132338.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Music Video · 2024</div></div>
-      </div>
-
-      <div class="card" data-vimeo="1007834851">
-        <div class="card-thumb"><img src="https://vumbnail.com/1007834851.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Music Video · 2024</div></div>
-      </div>
-
-      <div class="card" data-yt="7Lo8WTBuHDg">
-        <div class="card-thumb"><img src="https://i.ytimg.com/vi/7Lo8WTBuHDg/maxresdefault.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Music Video · 2024</div></div>
-      </div>
-
-      <div class="card" data-yt="PXn1l-R7uPY">
-        <div class="card-thumb"><img src="https://i.ytimg.com/vi/PXn1l-R7uPY/maxresdefault.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Music Video · 2024</div></div>
-      </div>
-
-      <div class="card" data-yt="9ofQZfvhtkU">
-        <div class="card-thumb"><img src="https://i.ytimg.com/vi/9ofQZfvhtkU/maxresdefault.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Music Video · 2024</div></div>
-      </div>
-
-      <div class="card" data-yt="tGqXFHPUO7c">
-        <div class="card-thumb"><img src="https://i.ytimg.com/vi/tGqXFHPUO7c/maxresdefault.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Music Video · 2024</div></div>
-      </div>
-
-      <div class="card" data-yt="Mz0W1VzmH84">
-        <div class="card-thumb"><img src="https://i.ytimg.com/vi/Mz0W1VzmH84/maxresdefault.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title"><em>Add Title</em></div><div class="card-meta">Music Video · 2024</div></div>
-      </div>
-
     </div>
-    <button class="row-arrow row-arr-right" id="ar-music" onclick="rowScroll('music',1)">
-      <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
-    </button>
+
+    <div class="card" data-vimeo="1093132338" data-title="Add Title" data-meta="Music Video · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://vumbnail.com/1093132338.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Add Title</div><div class="c-meta">Music Video · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      </div>
+    </div>
+
+    <div class="card" data-vimeo="1007834851" data-title="Add Title" data-meta="Music Video · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://vumbnail.com/1007834851.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Add Title</div><div class="c-meta">Music Video · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      </div>
+    </div>
+
+    <div class="card" data-yt="7Lo8WTBuHDg" data-title="Add Title" data-meta="Music Video · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://i.ytimg.com/vi/7Lo8WTBuHDg/maxresdefault.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Add Title</div><div class="c-meta">Music Video · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      </div>
+    </div>
+
+    <div class="card" data-yt="PXn1l-R7uPY" data-title="Add Title" data-meta="Music Video · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://i.ytimg.com/vi/PXn1l-R7uPY/maxresdefault.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Add Title</div><div class="c-meta">Music Video · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      </div>
+    </div>
+
+    <div class="card" data-yt="9ofQZfvhtkU" data-title="Add Title" data-meta="Music Video · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://i.ytimg.com/vi/9ofQZfvhtkU/maxresdefault.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Add Title</div><div class="c-meta">Music Video · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      </div>
+    </div>
+
+    <div class="card" data-yt="tGqXFHPUO7c" data-title="Add Title" data-meta="Music Video · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://i.ytimg.com/vi/tGqXFHPUO7c/maxresdefault.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Add Title</div><div class="c-meta">Music Video · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      </div>
+    </div>
+
+    <div class="card" data-yt="Mz0W1VzmH84" data-title="Add Title" data-meta="Music Video · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://i.ytimg.com/vi/Mz0W1VzmH84/maxresdefault.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Add Title</div><div class="c-meta">Music Video · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      </div>
+    </div>
+
   </div>
 </section>
 
 <!-- STILLS -->
 <section class="section" id="stills">
   <div class="section-head">
-    <h2 class="section-title"><em>Stills</em></h2>
+    <h2 class="section-title">Stills</h2>
     <span class="section-count">Coming Soon</span>
   </div>
-  <div class="h-row-wrap">
-    <div class="h-row" id="row-stills">
-      <div class="card placeholder"><span>Coming Soon</span></div>
-      <div class="card placeholder"><span>Coming Soon</span></div>
-      <div class="card placeholder"><span>Coming Soon</span></div>
-    </div>
+  <div class="grid">
+    <div class="card ph"><div class="card-inner"></div></div>
+    <div class="card ph"><div class="card-inner"></div></div>
+    <div class="card ph"><div class="card-inner"></div></div>
+    <div class="card ph"><div class="card-inner"></div></div>
   </div>
 </section>
 
 <!-- FEATURES -->
 <section class="section" id="features">
   <div class="section-head">
-    <h2 class="section-title"><em>Features</em></h2>
+    <h2 class="section-title">Features</h2>
     <span class="section-count">01 Project</span>
   </div>
-  <div class="h-row-wrap" id="wrap-feat">
-    <div class="h-row" id="row-feat">
-
-      <div class="card featured" data-yt="oIEKK_j0fss">
-        <div class="card-thumb"><img src="https://i.ytimg.com/vi/oIEKK_j0fss/maxresdefault.jpg" alt=""></div>
-        <div class="card-iframe"></div>
-        <div class="card-play"><div class="play-circle"></div></div>
-        <div class="card-info"><div class="card-title"><em>Saniwara</em></div><div class="card-meta">Feature · 2024</div></div>
+  <div class="grid">
+    <div class="card" data-yt="oIEKK_j0fss" data-title="Saniwara" data-meta="Feature · 2024">
+      <div class="card-inner">
+        <div class="c-thumb"><img src="https://i.ytimg.com/vi/oIEKK_j0fss/maxresdefault.jpg" alt=""></div>
+        <div class="c-preview"></div><div class="c-grad"></div>
+        <div class="c-info"><div class="c-title">Saniwara</div><div class="c-meta">Feature · 2024</div></div>
+        <div class="c-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
       </div>
-
     </div>
   </div>
 </section>
 
 <!-- FOOTER -->
-<footer>
+<footer id="footer">
   <div>
-    <div class="footer-name">Eliza<br><em>Padden</em></div>
-    <div class="footer-loc">Los Angeles &nbsp;×&nbsp; New York</div>
+    <div class="f-name">eliza padden</div>
+    <div class="f-loc">Los Angeles &nbsp;×&nbsp; New York</div>
   </div>
-  <div class="footer-links">
-    <a href="#" onclick="window.location='mailto:eliza@email.com';return false;">eliza@email.com</a>
-    <a href="#">IMDb</a>
-    <a href="#">Instagram</a>
-    <a href="#">LinkedIn</a>
-  </div>
-  <div class="footer-copy">© 2026 Eliza Padden — Film & Commercial Production</div>
+  <button class="f-contact-btn" onclick="openContact()">Get in Touch</button>
+  <div class="f-copy">© 2026 Eliza Padden — Production</div>
 </footer>
 
+<!-- LIGHTBOX -->
+<div id="lightbox">
+  <div id="lb-nav">
+    <div>
+      <div id="lb-title"></div>
+      <div id="lb-meta"></div>
+    </div>
+    <button id="lb-close" onclick="closeLB()">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div id="lb-body">
+    <button id="lb-prev" onclick="lbNav(-1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div id="lb-video"></div>
+    <button id="lb-next" onclick="lbNav(1)"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></button>
+  </div>
+</div>
+
+<!-- CONTACT OVERLAY -->
+<div id="contact-overlay">
+  <button class="contact-close" onclick="closeContact()">
+    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div class="contact-box">
+    <div class="contact-name">eliza padden</div>
+    <a class="contact-email" href="#" onclick="window.location='mai'+'lto:eliza@email.com';return false">eliza@email.com</a>
+    <div class="contact-loc">Los Angeles &nbsp;×&nbsp; New York</div>
+  </div>
+</div>
+
 <script>
-function buildSrc(card) {
-  var yt = card.dataset.yt;
-  var vimeo = card.dataset.vimeo;
-  if (yt) return 'https://www.youtube-nocookie.com/embed/' + yt + '?autoplay=1&controls=1&rel=0&modestbranding=1&iv_load_policy=3';
-  if (vimeo) return 'https://player.vimeo.com/video/' + vimeo + '?autoplay=1';
-  return '';
-}
+(function(){
 
-var activeCard = null;
+  var allCards = Array.from(document.querySelectorAll('.card:not(.ph)'));
+  var lbIndex  = 0;
+  var lb       = document.getElementById('lightbox');
+  var co       = document.getElementById('contact-overlay');
 
-function playCard(card) {
-  if (card === activeCard) return;
-  if (activeCard) {
-    activeCard.classList.remove('playing');
-    activeCard.querySelector('.card-iframe').innerHTML = '';
-    activeCard = null;
+  function ytSrc(id){
+    return 'https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&mute=0&controls=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=0&fs=1&playsinline=1';
   }
-  var iframeWrap = card.querySelector('.card-iframe');
-  var src = buildSrc(card);
-  iframeWrap.innerHTML = '<iframe src="' + src + '" allow="autoplay; fullscreen" allowfullscreen></iframe>';
-  card.classList.add('playing');
-  activeCard = card;
-}
+  function vimeoSrc(id){
+    return 'https://player.vimeo.com/video/'+id+'?autoplay=1&muted=0&controls=1';
+  }
+  function vimeoPreviewSrc(id){
+    return 'https://player.vimeo.com/video/'+id+'?autoplay=1&muted=1&loop=1&background=1&autopause=0';
+  }
 
-document.querySelectorAll('.card:not(.placeholder)').forEach(function(card) {
-  card.addEventListener('click', function() {
-    if (card === activeCard) return;
-    playCard(card);
+  /* ── lightbox ── */
+  function openLB(index){
+    lbIndex = index;
+    var card  = allCards[index];
+    var yt    = card.dataset.yt;
+    var vimeo = card.dataset.vimeo;
+    var title = card.dataset.title || '';
+    var meta  = card.dataset.meta  || '';
+
+    // kill hover preview
+    var prev = card.querySelector('.c-preview');
+    if(prev) prev.innerHTML = '';
+
+    document.getElementById('lb-title').textContent = title;
+    document.getElementById('lb-meta').textContent  = meta;
+
+    var vid = document.getElementById('lb-video');
+    vid.innerHTML = '<iframe src="'+(yt ? ytSrc(yt) : vimeoSrc(vimeo))+'" allow="autoplay; fullscreen" allowfullscreen></iframe>';
+
+    document.getElementById('lb-prev').classList.toggle('lb-hide', index === 0);
+    document.getElementById('lb-next').classList.toggle('lb-hide', index === allCards.length - 1);
+
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  window.closeLB = function(){
+    lb.classList.remove('open');
+    document.body.style.overflow = '';
+    setTimeout(function(){ document.getElementById('lb-video').innerHTML = ''; }, 380);
+  };
+
+  window.lbNav = function(dir){
+    var n = lbIndex + dir;
+    if(n >= 0 && n < allCards.length) openLB(n);
+  };
+
+  /* ── contact ── */
+  window.openContact = function(){
+    co.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+  window.closeContact = function(){
+    co.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+  co.addEventListener('click', function(e){ if(e.target === co) closeContact(); });
+
+  /* ── hover preview (Vimeo only) ── */
+  allCards.forEach(function(card, i){
+    var vimeo   = card.dataset.vimeo;
+    var preview = card.querySelector('.c-preview');
+
+    if(vimeo && preview){
+      card.addEventListener('mouseenter', function(){
+        preview.innerHTML = '';
+        var f = document.createElement('iframe');
+        f.src = vimeoPreviewSrc(vimeo);
+        f.setAttribute('allow','autoplay');
+        preview.appendChild(f);
+      });
+      card.addEventListener('mouseleave', function(){
+        preview.innerHTML = '';
+      });
+    }
+
+    card.addEventListener('click', function(){ openLB(i); });
   });
-});
 
-var rows = {
-  comm: document.getElementById('row-comm'),
-  music: document.getElementById('row-music')
-};
+  /* ── keyboard ── */
+  document.addEventListener('keydown', function(e){
+    if(co.classList.contains('open') && e.key === 'Escape'){ closeContact(); return; }
+    if(!lb.classList.contains('open')) return;
+    if(e.key === 'Escape')      closeLB();
+    if(e.key === 'ArrowRight')  lbNav(1);
+    if(e.key === 'ArrowLeft')   lbNav(-1);
+  });
 
-function rowScroll(key, dir) {
-  var row = rows[key];
-  row.scrollBy({ left: dir * row.clientWidth * 0.75, behavior: 'smooth' });
-}
+  /* ── nav solid on scroll ── */
+  var nav = document.getElementById('nav');
+  window.addEventListener('scroll', function(){
+    nav.classList.toggle('solid', window.scrollY > 60);
+  }, {passive:true});
 
-Object.keys(rows).forEach(function(key) {
-  var row = rows[key];
-  var al = document.getElementById('al-' + key);
-  var ar = document.getElementById('ar-' + key);
-  if (!row || !al || !ar) return;
-  row.addEventListener('scroll', function() {
-    al.classList.toggle('hide', row.scrollLeft < 20);
-    ar.classList.toggle('hide', row.scrollLeft + row.clientWidth >= row.scrollWidth - 20);
-  }, { passive: true });
-});
-
-var nav = document.getElementById('nav');
-window.addEventListener('scroll', function() {
-  nav.classList.toggle('solid', window.scrollY > 80);
-}, { passive: true });
+})();
 </script>
 </body>
 </html>

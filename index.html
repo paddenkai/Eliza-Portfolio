@@ -15,6 +15,35 @@
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--fg);font-family:'Poppins',sans-serif;font-weight:300;overflow-x:hidden}
 
+/* ── PASSWORD GATE ── */
+#pw-gate{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:32px;
+}
+#pw-gate.hidden{display:none}
+.pw-label{
+  font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);
+}
+.pw-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+}
+#pw-input{
+  background:none;border:none;border-bottom:1px solid rgba(238,235,229,.2);
+  color:var(--fg);font-family:'Poppins',sans-serif;font-weight:300;
+  font-size:14px;letter-spacing:.08em;text-align:center;
+  padding:8px 0;width:200px;outline:none;
+  transition:border-color .2s;
+}
+#pw-input:focus{border-color:rgba(238,235,229,.5)}
+#pw-input::placeholder{color:rgba(238,235,229,.2)}
+#pw-error{
+  font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(220,100,100,.7);opacity:0;transition:opacity .3s;
+}
+#pw-error.show{opacity:1}
+
 /* ── NAV — hidden on load, fades in after hero reveal ── */
 nav{
   position:fixed;top:0;left:0;right:0;z-index:100;
@@ -379,6 +408,15 @@ footer{
 </head>
 <body>
 
+<!-- PASSWORD GATE -->
+<div id="pw-gate">
+  <div class="pw-wrap">
+    <span class="pw-label">Private Preview</span>
+    <input id="pw-input" type="password" placeholder="enter password" autocomplete="off" />
+    <span id="pw-error">incorrect password</span>
+  </div>
+</div>
+
 <nav id="nav">
   <a class="nav-logo" href="#hero">elizapadden</a>
 </nav>
@@ -727,6 +765,37 @@ footer{
 
     card.addEventListener('click', function(){ openLB(i); });
   });
+
+  /* ── password gate ── */
+  (function(){
+    var gate  = document.getElementById('pw-gate');
+    var input = document.getElementById('pw-input');
+    var err   = document.getElementById('pw-error');
+    var PASS  = 'ElizaLeePPP123';
+    var KEY   = 'eliza_unlocked';
+
+    if(sessionStorage.getItem(KEY) === '1'){
+      gate.classList.add('hidden');
+      return;
+    }
+
+    document.body.style.overflow = 'hidden';
+
+    input.addEventListener('keydown', function(e){
+      if(e.key !== 'Enter') return;
+      if(input.value === PASS){
+        sessionStorage.setItem(KEY, '1');
+        gate.style.transition = 'opacity .6s ease';
+        gate.style.opacity = '0';
+        setTimeout(function(){ gate.classList.add('hidden'); }, 600);
+        document.body.style.overflow = '';
+      } else {
+        err.classList.add('show');
+        input.value = '';
+        setTimeout(function(){ err.classList.remove('show'); }, 2000);
+      }
+    });
+  })();
 
   /* ── keyboard ── */
   document.addEventListener('keydown', function(e){
